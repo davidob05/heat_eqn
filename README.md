@@ -28,4 +28,4 @@ ctest --preset release
 ## Debug vs Release
 Debug is for development, release is for real, optimised runs.
 
-\n
+
