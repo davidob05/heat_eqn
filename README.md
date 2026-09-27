@@ -4,7 +4,7 @@ A program designed to approximate the solutions to the heat equation
 
 # Instructions
 
-# Requirements
+## Requirements
  - C++17 compiler
  - CMake 3.25 or newer 
  - First configure downloads Catch2 so internet is needed
