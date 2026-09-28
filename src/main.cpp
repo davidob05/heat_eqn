@@ -1,4 +1,6 @@
 #include <iostream>
+#include "solver/grid.hpp"
+#include "solver/heat_solver.hpp"
 
 using namespace std;
 
