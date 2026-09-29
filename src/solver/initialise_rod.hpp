@@ -5,5 +5,5 @@
 #include "grid.hpp"
 
 namespace heat{
-    std::vector<double> initialise_rod(Grid grid, std::function<double (double)> function);
+    std::vector<double> initialise_rod(const Grid& grid, std::function<double (double)> function);
 }

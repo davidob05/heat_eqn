@@ -22,7 +22,6 @@ namespace {
         return {
             {"0",          [](double, double)     {return 0.0;}},
             {"sin(x)",     [](double x, double)   {return std::sin(x);}},
-            {"acos(x)",    [](double x, double)   {return std::acos(x);}},
             {"x",          [](double x, double)   {return x;}},
             {"-1",         [](double, double)     {return -1.0;}},
             {"length - x", [](double x, double L) {return L - x;}}
