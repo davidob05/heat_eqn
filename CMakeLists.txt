@@ -25,11 +25,11 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-add_library(heat_solver src/solver/grid.cpp)
+add_library(heat_solver src/solver/grid.cpp src/solver/initialise_rod.cpp)
 target_include_directories(heat_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Main src/main.cpp)
-add_executable(unit_tests tests/test_grid.cpp)
+add_executable(unit_tests tests/test_grid.cpp tests/test_initialise_rod.cpp)
 
 target_link_libraries(Main PRIVATE heat_solver)
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain heat_solver)
