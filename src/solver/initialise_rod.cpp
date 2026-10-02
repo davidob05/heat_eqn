@@ -1,5 +1,4 @@
 #include "initialise_rod.hpp"
-#include <cmath>
 
 namespace heat{
     std::vector<double> initialise_rod(const Grid& grid, std::function<double (double)> function){
