@@ -5,7 +5,6 @@
 #include "core/grid.hpp"
 #include "verifier/verifier.hpp"
 #include <limits>
-#include <stdexcept>
 #include <functional>
 #include <cmath>
 #include <string>
