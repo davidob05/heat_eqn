@@ -25,7 +25,7 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-add_library(heat_solver src/solver/grid.cpp src/solver/initialise_rod.cpp)
+add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp)
 target_include_directories(heat_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Main src/main.cpp)
