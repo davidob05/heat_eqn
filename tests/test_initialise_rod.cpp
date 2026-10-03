@@ -3,7 +3,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "core/initialise_rod.hpp"
 #include "core/grid.hpp"
-#include "verifier/verifier.hpp"
 #include <limits>
 #include <functional>
 #include <cmath>

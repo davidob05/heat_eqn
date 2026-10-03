@@ -1,5 +1,4 @@
 #include <iostream>
-#include "solver/grid.hpp"
 
 using namespace std;
 
