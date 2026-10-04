@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include "core/initialise_rod.hpp"
 #include "verifier/verifier.hpp"
 #include <limits>
 #include <functional>
@@ -38,7 +37,6 @@ TEST_CASE("Known values match those for given mode"){
     CHECK_THAT(heat::generate_specific_sin(L,1)(L/2),Catch::Matchers::WithinRel(1.0,std::numeric_limits<double>::epsilon()));
     INFO("Built from length " << L << " and mode 2");
     CHECK_THAT(heat::generate_specific_sin(L,2)(L/4),Catch::Matchers::WithinRel(1.0,std::numeric_limits<double>::epsilon()*4));
-
 }
 
 TEST_CASE("Pi used is equal to real calculated pi"){
