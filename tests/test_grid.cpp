@@ -66,7 +66,7 @@ TEST_CASE("Gap between each position is dx"){
     heat::Grid grid(n_intervals,length);
     INFO("built from intervals = " << n_intervals << ", and length = " << length); 
     for(std::size_t i = 1; i < grid.size() ;i++){
-        CHECK_THAT(grid.x()[i] - grid.x()[i-1], Catch::Matchers::WithinRel(grid.dx(),std::numeric_limits<double>::epsilon()*4*n_intervals));
+        CHECK_THAT(grid.x()[i] - grid.x()[i-1], Catch::Matchers::WithinRel(grid.dx(),std::numeric_limits<double>::epsilon()*4*static_cast<double>(n_intervals)));
     }
 }
 
@@ -74,5 +74,5 @@ TEST_CASE("dx is L/N"){
     auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,1,49);
     auto length = GENERATE(as<double>{},0.7,1.0,100.58,0.1);
     INFO("built from intervals = " << n_intervals << ", and length = " << length); 
-    CHECK(heat::Grid(n_intervals,length).dx()==length/n_intervals);
+    CHECK(heat::Grid(n_intervals,length).dx()==length/static_cast<double>(n_intervals));
 }

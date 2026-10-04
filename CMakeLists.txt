@@ -18,18 +18,30 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 include(CTest)
 
-
-if(MSVC)
-    add_compile_options(/W4)
-else()
-    add_compile_options(-Wall -Wextra -Wpedantic -Wconversion)
-endif()
-
 add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp)
 target_include_directories(heat_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Main src/main.cpp)
 add_executable(unit_tests tests/test_grid.cpp tests/test_initialise_rod.cpp tests/test_verifier.cpp)
+
+foreach(target IN ITEMS heat_solver Main unit_tests)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W4 $<$<CONFIG:Debug>:/WX>)
+    else()
+        target_compile_options(${target} PRIVATE
+            -Wall -Wextra -Wpedantic -Wconversion
+            $<$<CONFIG:Debug>:-Werror>
+            $<$<CONFIG:Debug>:-fsanitize=address>
+            $<$<CONFIG:Debug>:-fno-omit-frame-pointer>
+        )
+    endif()
+endforeach()
+
+foreach(target IN ITEMS Main unit_tests)
+    if(NOT MSVC)
+        target_link_options(${target} PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
+    endif()
+endforeach()
 
 target_link_libraries(Main PRIVATE heat_solver)
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain heat_solver)

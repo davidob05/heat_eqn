@@ -12,7 +12,7 @@ namespace heat{
         if( not (length > 0) || std::isinf(length)) throw std::invalid_argument("Length of rod must be positive, defined and not infinite");
         if( n_intervals < 1 ) throw std::invalid_argument("Grid needs at least 1 interval");
         for( std::size_t i = 0 ; i < n_intervals + 1 ; i++ ){
-            positions[i] = (static_cast<double>(i)/n_intervals)*length;
+            positions[i] = (static_cast<double>(i)/static_cast<double>(n_intervals))*length;
         }
     }
 }//namespace heat
