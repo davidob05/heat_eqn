@@ -15,9 +15,9 @@ namespace heat{
         };
     }
 
-    std::vector<double> verify(const Grid& grid, int mode, double t, double alpha){
+    std::vector<double> compute_end(const Grid& grid, int mode, double t, double alpha){
         double L = grid.length();
-        if( not (alpha > 0) || std::isinf(alpha)) throw std::invalid_argument("Alpha must be positive, defined and not infinite");
+        if( not (alpha >= 0) || std::isinf(alpha)) throw std::invalid_argument("Alpha must be 0, positive, defined and not infinite");
         if( not (t >= 0) || std::isinf(t)) throw std::invalid_argument("Time must be 0, positive, defined and not infinite");
 
         std::function<double(double)> f = generate_specific_sin(L,mode);
