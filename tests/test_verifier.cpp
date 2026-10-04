@@ -55,7 +55,7 @@ TEST_CASE("t=0 means the final solution is equal to the initial state"){
     std::function<double(double)> f = heat::generate_specific_sin(L,mode);
 
     std::vector<double> initial = heat::initialise_rod(grid,f);
-    std::vector<double> solution = heat::compute_end(grid,mode,0,alpha);
+    std::vector<double> solution = heat::exact_soln(grid,mode,0,alpha);
     REQUIRE(initial.size() == solution.size());
     for(std::size_t i = 0 ; i < solution.size() ; i++){
         CHECK(initial[i] == solution[i]);
@@ -76,7 +76,7 @@ TEST_CASE("Factor is applied correctly to each point"){
     std::function<double(double)> f = heat::generate_specific_sin(L,mode);
     std::vector<double> initial = heat::initialise_rod(grid,f);
     double expected_factor = std::exp(-mode*mode*tau*heat::pi*heat::pi);
-    std::vector<double> solution = heat::compute_end(grid,mode,t,alpha);
+    std::vector<double> solution = heat::exact_soln(grid,mode,t,alpha);
     for(std::size_t i = 0 ; i < solution.size() ; i++){
         CHECK_THAT(solution[i],Catch::Matchers::WithinRel(expected_factor*initial[i],8.0*std::numeric_limits<double>::epsilon()));
     }
@@ -88,7 +88,7 @@ TEST_CASE("Handles known case: 1/e check"){
 
     INFO("Built from intervals: " << n_intervals);
     heat::Grid grid(n_intervals,3);
-    std::vector<double> solution = heat::compute_end(grid,2,9.0/(4.0*heat::pi*heat::pi),1);
+    std::vector<double> solution = heat::exact_soln(grid,2,9.0/(4.0*heat::pi*heat::pi),1);
     CHECK_THAT(solution[n_intervals/4],Catch::Matchers::WithinRel(std::exp(-1),std::numeric_limits<double>::epsilon()));
 }
 
@@ -103,7 +103,7 @@ TEST_CASE("Starts and ends with 0"){
     INFO("Built from length: " << L << " and mode: " << mode << " and alpha: " << alpha << " and tau: " << tau << " and intervals: " << n_intervals);
     double t = tau * L * L / alpha;
     heat::Grid grid(n_intervals,L);
-    std::vector<double> solution = heat::compute_end(grid,mode,t,alpha);
+    std::vector<double> solution = heat::exact_soln(grid,mode,t,alpha);
     CHECK(solution[0] == 0);
     CHECK(solution.back() == 0);
 }
@@ -114,17 +114,11 @@ TEST_CASE("Bad inputs throw input_validation exception"){
 
     INFO("Built from length: " << L << " and intervals: " << n_intervals);
     heat::Grid grid(n_intervals,L);
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,1.0,-1.0),std::invalid_argument);
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,1.0,NAN),std::invalid_argument);
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,1.0,std::numeric_limits<double>::infinity()),std::invalid_argument);
+    CHECK_THROWS_AS(heat::exact_soln(grid,1,1.0,-1.0),std::invalid_argument);
+    CHECK_THROWS_AS(heat::exact_soln(grid,1,1.0,NAN),std::invalid_argument);
+    CHECK_THROWS_AS(heat::exact_soln(grid,1,1.0,std::numeric_limits<double>::infinity()),std::invalid_argument);
 
-
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,1.0,-1.0),std::invalid_argument);
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,1.0,NAN),std::invalid_argument);
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,1.0,std::numeric_limits<double>::infinity()),std::invalid_argument);
-
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,-1.0,1.0),std::invalid_argument);
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,NAN,1.0),std::invalid_argument);
-    CHECK_THROWS_AS(heat::compute_end(grid,1.0,std::numeric_limits<double>::infinity(),1.0),std::invalid_argument);
-
+    CHECK_THROWS_AS(heat::exact_soln(grid,1,-1.0,1.0),std::invalid_argument);
+    CHECK_THROWS_AS(heat::exact_soln(grid,1,NAN,1.0),std::invalid_argument);
+    CHECK_THROWS_AS(heat::exact_soln(grid,1,std::numeric_limits<double>::infinity(),1.0),std::invalid_argument);
 }

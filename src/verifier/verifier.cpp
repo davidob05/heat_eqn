@@ -8,14 +8,14 @@ namespace heat{
     std::function<double(double)> generate_specific_sin(double length, int mode){
         
         if( mode == 0 ) throw std::invalid_argument("Mode for sin(mode*pi*x/L) is 0");
-        if( not (length > 0) || std::isinf(length)) throw std::invalid_argument("Mode must be positive, defined and not infinite");
+        if( not (length > 0) || std::isinf(length)) throw std::invalid_argument("Mode must be defined and not infinite");
 
         return [length,mode](double x) {
             return std::sin((mode*pi*x)/length);
         };
     }
 
-    std::vector<double> compute_end(const Grid& grid, int mode, double t, double alpha){
+    std::vector<double> exact_soln(const Grid& grid, int mode, double t, double alpha){
         double L = grid.length();
         if( not (alpha >= 0) || std::isinf(alpha)) throw std::invalid_argument("Alpha must be 0, positive, defined and not infinite");
         if( not (t >= 0) || std::isinf(t)) throw std::invalid_argument("Time must be 0, positive, defined and not infinite");
