@@ -3,11 +3,13 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "core/initialise_rod.hpp"
 #include "core/grid.hpp"
+#include "verifier/verifier.hpp"
 #include <limits>
 #include <functional>
 #include <cmath>
 #include <string>
 #include <vector>
+#include <tuple>
 #include <catch2/generators/catch_generators_range.hpp>
 
 namespace {
@@ -77,4 +79,56 @@ TEST_CASE("Initial rod has expected values for given function"){
     for(std::size_t i = 1 ; i < rod.size() -1 ; i++){
         CHECK(rod[i] == function(grid.x()[i]));
     }
+}
+
+TEST_CASE("Function endpoint checker returns false for sin(x)"){
+    auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,1,49);
+    auto length = GENERATE(as<double>{},0.7,1.0,100.58,0.1);
+
+    heat::Grid grid(n_intervals,length);
+
+    INFO("Built with intervals: " << n_intervals << " and length: " << length);
+    std::function<double(double)> f = heat::generate_specific_sin(length, 1);
+
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    CHECK((!std::get<0>(checks) && !std::get<1>(checks)));
+}
+
+TEST_CASE("Function endpoint checker returns true for cos(x)"){
+    auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,1,49);
+    auto length = GENERATE(as<double>{},0.7,1.0,100.58,0.1);
+
+    heat::Grid grid(n_intervals,length);
+
+    INFO("Built with intervals: " << n_intervals << " and length: " << length);
+    std::function<double(double)> f = [](double x){return std::cos(x);};
+
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    CHECK((std::get<0>(checks) && std::get<1>(checks)));
+}
+
+TEST_CASE("Function endpoint checker returns false for left and true for right for x"){
+    auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,1,49);
+    auto length = GENERATE(as<double>{},0.7,1.0,100.58,0.1);
+
+    heat::Grid grid(n_intervals,length);
+
+    INFO("Built with intervals: " << n_intervals << " and length: " << length);
+    std::function<double(double)> f = [](double x){return x;};
+
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    CHECK((!std::get<0>(checks) && std::get<1>(checks)));
+}
+
+TEST_CASE("Function endpoint checker returns true for left and false for right for x-1"){
+    auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,1,49);
+    auto length = GENERATE(as<double>{},0.7,1.0,100.58,0.1);
+
+    heat::Grid grid(n_intervals,length);
+
+    INFO("Built with intervals: " << n_intervals << " and length: " << length);
+    std::function<double(double)> f = [length](double x){return x-length;};
+
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    CHECK((std::get<0>(checks) && !std::get<1>(checks)));
 }
