@@ -36,7 +36,6 @@ TEST_CASE("Simple symmetric update updates as expected, with edge r value"){
     CHECK(expected == changed_vec);
 }
 
-
 TEST_CASE("Sine inscribed rod updates as expected on one update"){
     auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,49,10000);
     auto L = GENERATE(as<double>{},0.7,1.0,100.58,0.1);
@@ -62,6 +61,55 @@ TEST_CASE("3 timesteps, simple spike tested behaviour"){
     CHECK(std::vector<double> {0, 0.25, 0.375, 0.25, 0} == changed_vec);
     changed_vec = heat::time_step(changed_vec,r);
     CHECK(std::vector<double> {0, 0.21875, 0.3125, 0.21875, 0} == changed_vec);
+}
+
+TEST_CASE("Check step parameter calculator gives exact values for known inputs"){
+    CHECK(heat::calculate_step_parameters(0.5,1.0,2.0,0.25)==std::make_tuple(std::size_t{32},1.0/32,0.25));
+}
+
+TEST_CASE("Step parameter calculator rounds n up when T is not a multiple of the requested dt"){
+    const double eps = std::numeric_limits<double>::epsilon();
+    auto [n, dt, r_used] = heat::calculate_step_parameters(0.5,1.1,2.0,0.25);
+    CHECK(n == 36);
+    CHECK_THAT(dt, Catch::Matchers::WithinRel(1.1/36,10*eps));
+    CHECK_THAT(r_used, Catch::Matchers::WithinRel(2.0*(1.1/36)/0.25,10*eps));
+    CHECK_THAT(r_used, Catch::Matchers::WithinAbs(0.2444,1e-4));
+}
+
+TEST_CASE("Step parameter calculator gives a single step when T is smaller than one step"){
+    const double eps = std::numeric_limits<double>::epsilon();
+    auto [n, dt, r_used] = heat::calculate_step_parameters(0.5,0.001,2.0,0.25);
+    CHECK(n == 1);
+    CHECK_THAT(dt, Catch::Matchers::WithinRel(0.001,10*eps));
+}
+
+TEST_CASE("Step parameter calculator invariants hold over generated inputs"){
+    const double eps = std::numeric_limits<double>::epsilon();
+    auto dx = GENERATE(as<double>{},0.5,0.1,0.013,2.0);
+    auto T = GENERATE(as<double>{},0.001,0.7,1.0,1.1,3.3);
+    auto alpha = GENERATE(as<double>{},0.01,1.0,2.0,7.5);
+    auto r_req = GENERATE(as<double>{},0.1,0.25,0.4,0.5);
+
+    auto [n, dt, r_used] = heat::calculate_step_parameters(dx,T,alpha,r_req);
+    CHECK(n >= 1);
+    CHECK_THAT(static_cast<double>(n)*dt, Catch::Matchers::WithinRel(T,10*eps));
+    CHECK(r_used <= r_req*(1+10*eps));
+}
+
+TEST_CASE("Step parameter calculator rejects bad inputs"){
+    auto bad = GENERATE(as<double>{},-1.0,0.0,std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::infinity());
+
+    CHECK_THROWS_AS(heat::calculate_step_parameters(bad,1.0,2.0,0.25),std::invalid_argument);
+    CHECK_THROWS_AS(heat::calculate_step_parameters(0.5,bad,2.0,0.25),std::invalid_argument);
+    CHECK_THROWS_AS(heat::calculate_step_parameters(0.5,1.0,bad,0.25),std::invalid_argument);
+    CHECK_THROWS_AS(heat::calculate_step_parameters(0.5,1.0,2.0,bad),std::invalid_argument);
+}
+
+TEST_CASE("Step parameter calculator rejects inputs that push n past the cap"){
+    CHECK_THROWS_AS(heat::calculate_step_parameters(1e-200,1.0,2.0,0.25),std::invalid_argument);
+    CHECK_THROWS_AS(heat::calculate_step_parameters(1e-5,1.0,2.0,0.25),std::invalid_argument);
+    CHECK_THROWS_AS(heat::calculate_step_parameters(0.5,1.0,1e300,0.25),std::invalid_argument);
+    CHECK_THROWS_AS(heat::calculate_step_parameters(0.5,1e300,2.0,0.25),std::invalid_argument);
 }
 
 
