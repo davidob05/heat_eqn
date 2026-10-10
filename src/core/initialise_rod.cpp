@@ -3,6 +3,7 @@
 #include <tuple>
 #include <functional>
 #include <cmath>
+#include <limits>
 
 namespace heat{
     std::vector<double> initialise_rod(const Grid& grid, std::function<double (double)> function){
