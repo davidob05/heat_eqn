@@ -63,6 +63,24 @@ TEST_CASE("3 timesteps, simple spike tested behaviour"){
     CHECK(std::vector<double> {0, 0.21875, 0.3125, 0.21875, 0} == changed_vec);
 }
 
+TEST_CASE("Nonzero end values are carried through and read by neighbouring points"){
+    const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
+    const std::vector<double> expected = {5, 2.25, 2, 3.75, 7};
+    CHECK(heat::time_step(orig_vec,0.25) == expected);
+}
+
+TEST_CASE("time_step leaves its input unchanged"){
+    const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
+    const std::vector<double> copy = orig_vec;
+    std::vector<double> changed_vec = heat::time_step(orig_vec,0.25);
+    CHECK(orig_vec == copy);
+}
+
+TEST_CASE("r = 0 returns the input exactly"){
+    const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
+    CHECK(heat::time_step(orig_vec,0.0) == orig_vec);
+}
+
 TEST_CASE("Check step parameter calculator gives exact values for known inputs"){
     CHECK(heat::calculate_step_parameters(0.5,1.0,2.0,0.25)==std::make_tuple(std::size_t{32},1.0/32,0.25));
 }
