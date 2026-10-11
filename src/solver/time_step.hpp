@@ -9,4 +9,5 @@ namespace heat{
     std::vector<double> time_step(const std::vector<double>& curr_state, double r);
     std::tuple<std::size_t,double,double> calculate_step_parameters(double dx, double T, double alpha, double r_req);
     std::vector<double> step_loop(std::vector<double> initial_state, double r, std::size_t n);
+    void time_step_into(std::vector<double>& curr_state, double r);
 }//namespace heat

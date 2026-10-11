@@ -9,9 +9,7 @@
 namespace heat{
     std::vector<double> time_step(const std::vector<double>& buffer, double r){
         std::vector<double> returned_state = buffer;
-        for(std::size_t i = 1; i < buffer.size() - 1 ; i++){
-            returned_state[i] = buffer[i] + r*(buffer[i-1] - 2.0*buffer[i] + buffer[i+1]);
-        }
+        time_step_into(returned_state,r);
         return returned_state;
     }
 
@@ -39,4 +37,13 @@ namespace heat{
         return initial_state;
     }
 
+    void time_step_into(std::vector<double>& curr_state, double r){
+        double prev = curr_state[0];
+        double curr;
+        for(std::size_t i = 1 ; i < curr_state.size() - 1 ; i++){
+            curr = curr_state[i];
+            curr_state[i] = curr + r*(prev - 2.0*curr + curr_state[i+1]);
+            prev = curr;
+        }
+    }
 } // namespace heat
