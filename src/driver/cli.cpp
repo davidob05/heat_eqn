@@ -1,5 +1,7 @@
 #include "cli.hpp"
+#include <algorithm>
 #include <cstddef>
+#include <limits>
 #include <exception>
 #include <stdexcept>
 #include <string>
@@ -30,6 +32,14 @@ namespace heat{
             }
             if(used != value.size()) throw std::invalid_argument(flag + ": '" + value + "' is not an integer");
             return result;
+        }
+
+        int parse_int(const std::string& flag, const std::string& value){
+            const long long result = parse_integer(flag, value);
+            if(result < std::numeric_limits<int>::min() || result > std::numeric_limits<int>::max()){
+                throw std::invalid_argument(flag + ": '" + value + "' is out of range");
+            }
+            return static_cast<int>(result);
         }
 
         std::size_t parse_size(const std::string& flag, const std::string& value){
@@ -83,20 +93,29 @@ namespace heat{
             }
 
             // everything below needs a value
+            static const std::vector<std::string> value_flags = {"--n-intervals","--length","--alpha","--T","--r-req","--mode","--snapshots","--output"};
+            if(std::find(value_flags.begin(), value_flags.end(), flag) == value_flags.end()){
+                throw std::invalid_argument("unknown option '" + flag + "'");
+            }
+
             if(!has_value){
                 if(i + 1 >= args.size()) throw std::invalid_argument(flag + ": missing value");
                 value = args[++i];
             }
 
-            if(flag == "--n-intervals")      options.params.n_intervals = parse_size(flag, value);
+            if(flag == "--n-intervals"){
+                options.params.n_intervals = parse_size(flag, value);
+                if(options.params.n_intervals > MAX_CLI_INTERVALS){
+                    throw std::invalid_argument(flag + ": must not exceed " + std::to_string(MAX_CLI_INTERVALS));
+                }
+            }
             else if(flag == "--length")      options.params.length = parse_double(flag, value);
             else if(flag == "--alpha")       options.params.alpha = parse_double(flag, value);
             else if(flag == "--T")           options.params.T = parse_double(flag, value);
             else if(flag == "--r-req")       options.params.r_req = parse_double(flag, value);
-            else if(flag == "--mode")        options.params.mode = static_cast<int>(parse_integer(flag, value));
+            else if(flag == "--mode")        options.params.mode = parse_int(flag, value);
             else if(flag == "--snapshots")   options.params.snapshots = parse_size(flag, value);
-            else if(flag == "--output")      options.output_path = value;
-            else throw std::invalid_argument("unknown option '" + flag + "'");
+            else                             options.output_path = value;
         }
         return options;
     }
