@@ -7,10 +7,14 @@
 
 
 namespace heat{
-    std::vector<double> time_step(const std::vector<double>& buffer, double r){
-        std::vector<double> returned_state = buffer;
-        time_step_into(returned_state,r);
-        return returned_state;
+    void time_step(std::vector<double>& curr_state, double r){
+        double prev = curr_state[0];
+        double curr;
+        for(std::size_t i = 1 ; i < curr_state.size() - 1 ; i++){
+            curr = curr_state[i];
+            curr_state[i] = curr + r*(prev - 2.0*curr + curr_state[i+1]);
+            prev = curr;
+        }
     }
 
     std::tuple<std::size_t,double,double> calculate_step_parameters(double dx, double T, double alpha, double r_req){
@@ -30,20 +34,9 @@ namespace heat{
     }
 
     std::vector<double> step_loop(std::vector<double> initial_state, double r, std::size_t n){
-        std::vector<double> copy = initial_state;
         for(std::size_t i = 0 ; i<n ; i++){
-            initial_state = time_step(initial_state, r);
+            time_step(initial_state, r);
         }
         return initial_state;
-    }
-
-    void time_step_into(std::vector<double>& curr_state, double r){
-        double prev = curr_state[0];
-        double curr;
-        for(std::size_t i = 1 ; i < curr_state.size() - 1 ; i++){
-            curr = curr_state[i];
-            curr_state[i] = curr + r*(prev - 2.0*curr + curr_state[i+1]);
-            prev = curr;
-        }
     }
 } // namespace heat
