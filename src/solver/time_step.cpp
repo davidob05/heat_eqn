@@ -28,8 +28,15 @@ namespace heat{
 
         double dt = T/n;
         double r_used = alpha*dt/(dx*dx);
-
-
         return {static_cast<std::size_t>(n),dt,r_used};
     }
+
+    std::vector<double> step_loop(std::vector<double> initial_state, double r, std::size_t n){
+        std::vector<double> copy = initial_state;
+        for(std::size_t i = 0 ; i<n ; i++){
+            initial_state = time_step(initial_state, r);
+        }
+        return initial_state;
+    }
+
 } // namespace heat
