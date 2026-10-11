@@ -70,3 +70,7 @@ Testing/
 
 # generated simulation output
 results/*.csv
+results/*.png
+
+# python
+__pycache__/

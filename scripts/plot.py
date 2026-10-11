@@ -36,6 +36,12 @@ def parse_args(argv=None):
 
 
 def load_blocks(path):
+    """Read a solver CSV into a list of blocks, one per snapshot.
+
+    Each block is an array with columns t, x, u_numeric, u_exact (in that order).
+    Raises ValueError with a readable message if the file is not a complete,
+    finite solver CSV (wrong header, truncated, or from a diverged run).
+    """
     with open(path) as f:
         header = f.readline().strip().split(",")
     if header != EXPECTED_HEADER:
@@ -54,6 +60,15 @@ def load_blocks(path):
     if data.shape[1] != len(EXPECTED_HEADER):
         raise ValueError(f"expected {len(EXPECTED_HEADER)} columns, found {data.shape[1]}")
 
+    # must come before any maths on the values, which would otherwise hide a diverged run
+    finite = np.isfinite(data)
+    if not finite.all():
+        bad_rows = np.flatnonzero(~finite.all(axis=1))
+        raise ValueError(
+            f"{int(np.count_nonzero(~finite))} non-finite values, first at t={data[bad_rows[0], 0]:.6g}; "
+            "the run probably diverged (check r)"
+        )
+
     # the first block is the rows sharing the initial time
     block_len = int(np.count_nonzero(data[:, 0] == data[0, 0]))
     if len(data) % block_len != 0:
@@ -61,6 +76,11 @@ def load_blocks(path):
             f"{len(data)} rows is not a whole number of {block_len}-row blocks (file may be truncated)"
         )
     n_blocks = len(data) // block_len
+    # a complete run is the initial state plus at least one snapshot
+    if n_blocks < 2:
+        raise ValueError(
+            f"found {n_blocks} block of {len(data)} rows, expected at least 2 (file looks truncated)"
+        )
     blocks = data.reshape(n_blocks, block_len, len(EXPECTED_HEADER))
 
     times = blocks[:, :, 0]
@@ -93,7 +113,7 @@ def main(argv=None):
     colors = matplotlib.colormaps["viridis"](np.linspace(0, 0.9, n_blocks))
 
     fig, (ax_top, ax_bottom) = plt.subplots(
-        2, 1, sharex=True, gridspec_kw={"height_ratios": [2, 1]}, constrained_layout=True
+        2, 1, sharex=False, gridspec_kw={"height_ratios": [2, 1]}, constrained_layout=True
     )
 
     fig.get_layout_engine().set(hspace=0.12)
@@ -116,6 +136,7 @@ def main(argv=None):
             ax_bottom.plot(x, diff, color=colors[j])
 
     ax_top.set_ylabel("u(x,t)")
+    ax_top.set_xlabel("x")
     # legend sits outside the axes so it never covers the curves
     fig.legend(*ax_top.get_legend_handles_labels(), loc="outside right upper")
     ax_bottom.set_xlabel("x")

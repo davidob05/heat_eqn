@@ -71,9 +71,11 @@ CSV with the header `t,x,u_numeric,u_exact`. The first block is the initial stat
 ```bash
 python3 scripts/plot.py [path/to/output.csv] [-o path/to/figure.png] [--show]
 ```
-The CSV path defaults to `results/output.csv`. The figure is saved next to the CSV with a `.png` extension unless `-o/--output` is given, so scratch plots stay beside their data. For figures you want to keep in git, write them to a tracked folder, for example `-o docs/figures/default_run.png`. The window only opens with `--show`. A CSV that is missing columns or looks truncated is rejected with a message rather than a traceback.
+The CSV path defaults to `results/output.csv`. The figure is saved next to the CSV with a `.png` extension unless `-o/--output` is given, so scratch plots stay beside their data. For figures you want to keep in git, write them to a tracked folder, for example `-o docs/figures/default_run.png`. The window only opens with `--show`. A CSV with the wrong header, a truncated file (fewer than two snapshot blocks, or cut part-way through a block) or non-finite values (a diverged run, so check `r`) is rejected with a message and a non-zero exit code rather than a traceback or a misleading plot.
 
-The top panel shows the exact solution (lines) with the numeric solution (markers); the bottom panel shows numeric minus exact, with the largest absolute error in its title. Generated CSVs in `results/` are git-ignored.
+The top panel shows the exact solution (lines) with the numeric solution (markers); the bottom panel shows numeric minus exact, with the largest absolute error in its title. Generated CSVs and PNGs in `results/` are git-ignored.
+
+The plot script has its own tests: `python3 -m unittest tests.test_plot` from the project root.
 
 ## Project layout
 ```
