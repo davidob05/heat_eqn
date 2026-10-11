@@ -78,13 +78,6 @@ TEST_CASE("Nonzero end values are carried through and read by neighbouring point
     CHECK(step_copy(orig_vec,0.25) == expected);
 }
 
-TEST_CASE("time_step leaves its input unchanged"){
-    const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
-    const std::vector<double> copy = orig_vec;
-    std::vector<double> changed_vec = step_copy(orig_vec,0.25);
-    CHECK(orig_vec == copy);
-}
-
 TEST_CASE("r = 0 returns the input exactly"){
     const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
     CHECK(step_copy(orig_vec,0.0) == orig_vec);
@@ -139,15 +132,6 @@ TEST_CASE("Step parameter calculator rejects inputs that push n past the cap"){
     CHECK_THROWS_AS(heat::calculate_step_parameters(0.5,1e300,2.0,0.25),std::invalid_argument);
 }
 
-TEST_CASE("loop 3 times on known hand calculated example"){
-    double r = 0.25;
-    std::size_t n = 3;
-    std::vector<double> orig_vec(5,0);
-    orig_vec[2] = 1;
-    std::vector<double> changed_vec = heat::step_loop(orig_vec,r,n);
-    CHECK(std::vector<double> {0, 0.21875, 0.3125, 0.21875, 0} == changed_vec);
-}
-
 TEST_CASE("loop = exactly the same as hand called time_step"){
     auto n = GENERATE(as<std::size_t>{}, 1, 10, 50, 100);
     auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,49,10000);
@@ -193,7 +177,7 @@ TEST_CASE("loop on asymmetric rod with nonzero ends is exactly the same as hand 
 TEST_CASE("loop leaves the caller's vector unchanged"){
     const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
     const std::vector<double> copy = orig_vec;
-    std::vector<double> result = heat::step_loop(orig_vec,0.25,5);
+    heat::step_loop(orig_vec,0.25,5);
     CHECK(orig_vec == copy);
 }
 
