@@ -64,9 +64,5 @@ int main(int argc, char* argv[]){
         std::filesystem::remove(temp, ec);
         return 1;
     }
-
-    if(options.plot){
-        std::cerr << "Note: --plot is not implemented yet, no plot produced\n";
-    }
     return 0;
 }

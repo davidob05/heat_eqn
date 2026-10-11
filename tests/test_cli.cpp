@@ -20,11 +20,10 @@ TEST_CASE("No arguments gives the defaults"){
     CHECK(options.params.snapshots == defaults.snapshots);
     CHECK(options.output_path == "results/output.csv");
     CHECK(!options.show_help);
-    CHECK(!options.plot);
 }
 
 TEST_CASE("Every flag fills in its field"){
-    heat::CliOptions options = heat::parse_args({"--n-intervals","50","--length","2.5","--alpha","0.5","--T","0.05","--r-req","0.3","--mode","-2","--snapshots","4","--output","out.csv","--plot"});
+    heat::CliOptions options = heat::parse_args({"--n-intervals","50","--length","2.5","--alpha","0.5","--T","0.05","--r-req","0.3","--mode","-2","--snapshots","4","--output","out.csv"});
     CHECK(options.params.n_intervals == 50);
     CHECK(options.params.length == 2.5);
     CHECK(options.params.alpha == 0.5);
@@ -33,7 +32,6 @@ TEST_CASE("Every flag fills in its field"){
     CHECK(options.params.mode == -2);
     CHECK(options.params.snapshots == 4);
     CHECK(options.output_path == "out.csv");
-    CHECK(options.plot);
 }
 
 TEST_CASE("Space separated and equals separated values are equivalent"){
@@ -47,10 +45,6 @@ TEST_CASE("Space separated and equals separated values are equivalent"){
 TEST_CASE("Help flags set show_help"){
     auto flag = GENERATE(as<std::string>{},"--help","-h");
     CHECK(heat::parse_args({flag}).show_help);
-}
-
-TEST_CASE("Plot takes no value"){
-    CHECK_THROWS_AS(heat::parse_args({"--plot=1"}),std::invalid_argument);
 }
 
 TEST_CASE("Malformed numbers are rejected"){
@@ -102,7 +96,7 @@ TEST_CASE("A value flag with no value is reported as missing"){
 TEST_CASE("Usage text mentions every flag"){
     std::ostringstream stream;
     heat::print_usage(stream,"Main");
-    for(const char* flag : {"--n-intervals","--length","--alpha","--T","--r-req","--mode","--snapshots","--output","--plot","--help"}){
+    for(const char* flag : {"--n-intervals","--length","--alpha","--T","--r-req","--mode","--snapshots","--output","--help"}){
         INFO(flag);
         CHECK(stream.str().find(flag) != std::string::npos);
     }

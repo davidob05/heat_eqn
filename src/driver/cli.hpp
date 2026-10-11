@@ -13,7 +13,6 @@ namespace heat{
         SimulationParams params;
         std::string output_path = "results/output.csv";
         bool show_help = false;
-        bool plot = false;
     };
 
     void print_usage(std::ostream& stream, const std::string& program);

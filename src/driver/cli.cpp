@@ -60,7 +60,6 @@ namespace heat{
                << "  --mode <int>          sine mode of the initial state\n"
                << "  --snapshots <int>     number of snapshots after the initial state\n"
                << "  --output <path>       output CSV path\n"
-               << "  --plot                plot the results after the run (off by default)\n"
                << "  --help                show this message\n"
                << "Values may be given as '--flag value' or '--flag=value'.\n";
     }
@@ -83,12 +82,6 @@ namespace heat{
 
             if(flag == "--help" || flag == "-h"){
                 options.show_help = true;
-                continue;
-            }
-
-            if(flag == "--plot"){
-                if(has_value) throw std::invalid_argument(flag + ": takes no value");
-                options.plot = true;
                 continue;
             }
 
