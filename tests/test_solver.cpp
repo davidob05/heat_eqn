@@ -130,5 +130,88 @@ TEST_CASE("Step parameter calculator rejects inputs that push n past the cap"){
     CHECK_THROWS_AS(heat::calculate_step_parameters(0.5,1e300,2.0,0.25),std::invalid_argument);
 }
 
+TEST_CASE("loop 3 times on known hand calculated example"){
+    double r = 0.25;
+    std::size_t n = 3;
+    std::vector<double> orig_vec(5,0);
+    orig_vec[2] = 1;
+    std::vector<double> changed_vec = heat::step_loop(orig_vec,r,n);
+    CHECK(std::vector<double> {0, 0.21875, 0.3125, 0.21875, 0} == changed_vec);
+}
 
+TEST_CASE("loop = exactly the same as hand called time_step"){
+    auto n = GENERATE(as<std::size_t>{}, 1, 10, 50, 100);
+    auto n_intervals = GENERATE(as<std::size_t>{},12,20,1000,49,10000);
+    auto L = GENERATE(as<double>{},0.7,1.0,100.58,0.1);
+    auto r = GENERATE(as<double>{},0.1, 0.25, 0.4);
+
+    heat::Grid grid(n_intervals,L);
+    std::function<double(double)> f = heat::generate_specific_sin(L,1);
+    std::vector<double> loop_called = heat::initialise_rod(grid,f);
+    std::vector<double> hand_called = loop_called;
+
+    loop_called = heat::step_loop(loop_called,r,n);
+
+    for(std::size_t i = 0 ; i < n ; i++ ){
+        hand_called = heat::time_step(hand_called,r);
+    }
+
+    CHECK(hand_called == loop_called);
+}
+
+TEST_CASE("loop matches hand calculated spike for n = 0 to 3"){
+    const double r = 0.25;
+    const std::vector<double> orig_vec = {0, 0, 1, 0, 0};
+    CHECK(heat::step_loop(orig_vec,r,0) == std::vector<double> {0, 0, 1, 0, 0});
+    CHECK(heat::step_loop(orig_vec,r,1) == std::vector<double> {0, 0.25, 0.5, 0.25, 0});
+    CHECK(heat::step_loop(orig_vec,r,2) == std::vector<double> {0, 0.25, 0.375, 0.25, 0});
+    CHECK(heat::step_loop(orig_vec,r,3) == std::vector<double> {0, 0.21875, 0.3125, 0.21875, 0});
+}
+
+TEST_CASE("loop on asymmetric rod with nonzero ends is exactly the same as hand called time_step"){
+    auto n = GENERATE(as<std::size_t>{}, 0, 1, 2, 5);
+    const double r = 0.25;
+    const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
+    std::vector<double> hand_called = orig_vec;
+
+    for(std::size_t i = 0 ; i < n ; i++ ){
+        hand_called = heat::time_step(hand_called,r);
+    }
+
+    CHECK(heat::step_loop(orig_vec,r,n) == hand_called);
+}
+
+TEST_CASE("loop leaves the caller's vector unchanged"){
+    const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
+    const std::vector<double> copy = orig_vec;
+    std::vector<double> result = heat::step_loop(orig_vec,0.25,5);
+    CHECK(orig_vec == copy);
+}
+
+TEST_CASE("Decay against an exact solution"){
+    //N=100, L=1, alpha=1, r_req=0.4, T=0.1
+    std::size_t n_intervals = 100;
+    double L = 1.0;
+    double alpha = 1.0;
+    double r_req = 0.4;
+    double T = 0.1;
+    heat::Grid grid(n_intervals,L);
+    double dx = grid.dx();
+
+
+    auto [n,dt,r] = heat::calculate_step_parameters(dx,T,alpha,r_req);
+    std::vector<double> exact_solution = heat::exact_soln(grid,1,T,alpha);
+    std::vector<double> state = heat::initialise_rod(grid,heat::generate_specific_sin(L,1));
+    state = heat::step_loop(state,r,n);
+    double max_error = 0.0;
+    double error;
+    for(std::size_t i = 0 ; i < state.size() ; i++ ){
+        error = std::abs(state[i] - exact_solution[i]);
+        if( error > max_error){
+            max_error = error;
+        }
+    }
+    CHECK_THAT(max_error, Catch::Matchers::WithinAbs(0.0,6e-5));
+    //observed difference of 4.2e-5
+}
 
