@@ -16,7 +16,10 @@
 
 namespace heat{
     SimulationResult run_simulation(const SimulationParams& params ,std::ostream& stream){
-        
+        if(stream.fail()){
+            throw std::runtime_error("Output stream is already in a failed state.");
+        }
+
         SimulationResult sim_result;
 
         if(std::abs(static_cast<double>(params.mode))*MODE_N_INTERVALS_THRESHOLD > static_cast<double>(params.n_intervals)){

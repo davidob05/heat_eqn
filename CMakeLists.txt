@@ -18,7 +18,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 include(CTest)
 
-add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp src/solver/time_step.cpp src/writer/writer.cpp src/driver/simulation.cpp)
+add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp src/solver/time_step.cpp src/writer/writer.cpp src/driver/simulation.cpp src/driver/cli.cpp)
 target_include_directories(heat_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Main src/main.cpp)
