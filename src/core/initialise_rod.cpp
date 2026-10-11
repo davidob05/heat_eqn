@@ -17,13 +17,13 @@ namespace heat{
         return rod;
     }
 
-    std::tuple<bool,bool> check_fn_0_endpoints(const Grid& grid, std::function<double (double)> function){
+    std::tuple<bool,bool> check_fn_0_endpoints(const Grid& grid, std::function<double (double)> function, int mode){
         bool left = false;
         bool right = false;
-        if(std::abs(function(grid.x()[0]))>16*std::numeric_limits<double>::epsilon()){
+        if(std::abs(function(grid.x()[0]))>16*std::numeric_limits<double>::epsilon()*abs(mode)){
             left = true;
         }
-        if(std::abs(function(grid.x().back()))>16.0*std::numeric_limits<double>::epsilon()){
+        if(std::abs(function(grid.x().back()))>16.0*std::numeric_limits<double>::epsilon()*abs(mode)){
             right = true;
         }
 

@@ -90,7 +90,7 @@ TEST_CASE("Function endpoint checker returns false for sin(x)"){
     INFO("Built with intervals: " << n_intervals << " and length: " << length);
     std::function<double(double)> f = heat::generate_specific_sin(length, 1);
 
-    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f,1);
     CHECK((!std::get<0>(checks) && !std::get<1>(checks)));
 }
 
@@ -103,7 +103,7 @@ TEST_CASE("Function endpoint checker returns true for cos(x)"){
     INFO("Built with intervals: " << n_intervals << " and length: " << length);
     std::function<double(double)> f = [](double x){return std::cos(x);};
 
-    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f,1);
     CHECK((std::get<0>(checks) && std::get<1>(checks)));
 }
 
@@ -116,7 +116,7 @@ TEST_CASE("Function endpoint checker returns false for left and true for right f
     INFO("Built with intervals: " << n_intervals << " and length: " << length);
     std::function<double(double)> f = [](double x){return x;};
 
-    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f,1);
     CHECK((!std::get<0>(checks) && std::get<1>(checks)));
 }
 
@@ -129,6 +129,6 @@ TEST_CASE("Function endpoint checker returns true for left and false for right f
     INFO("Built with intervals: " << n_intervals << " and length: " << length);
     std::function<double(double)> f = [length](double x){return x-length;};
 
-    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f);
+    std::tuple<bool,bool> checks = heat::check_fn_0_endpoints(grid,f,1);
     CHECK((std::get<0>(checks) && !std::get<1>(checks)));
 }

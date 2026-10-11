@@ -143,7 +143,7 @@ TEST_CASE("loop = exactly the same as hand called time_step"){
     std::vector<double> loop_called = heat::initialise_rod(grid,f);
     std::vector<double> hand_called = loop_called;
 
-    loop_called = heat::step_loop(loop_called,r,n);
+    heat::step_loop(loop_called,r,n);
 
     for(std::size_t i = 0 ; i < n ; i++ ){
         hand_called = step_copy(hand_called,r);
@@ -155,10 +155,15 @@ TEST_CASE("loop = exactly the same as hand called time_step"){
 TEST_CASE("loop matches hand calculated spike for n = 0 to 3"){
     const double r = 0.25;
     const std::vector<double> orig_vec = {0, 0, 1, 0, 0};
-    CHECK(heat::step_loop(orig_vec,r,0) == std::vector<double> {0, 0, 1, 0, 0});
-    CHECK(heat::step_loop(orig_vec,r,1) == std::vector<double> {0, 0.25, 0.5, 0.25, 0});
-    CHECK(heat::step_loop(orig_vec,r,2) == std::vector<double> {0, 0.25, 0.375, 0.25, 0});
-    CHECK(heat::step_loop(orig_vec,r,3) == std::vector<double> {0, 0.21875, 0.3125, 0.21875, 0});
+    auto run = [&](std::size_t steps){
+        std::vector<double> v = orig_vec;
+        heat::step_loop(v,r,steps);
+        return v;
+    };
+    CHECK(run(0) == std::vector<double> {0, 0, 1, 0, 0});
+    CHECK(run(1) == std::vector<double> {0, 0.25, 0.5, 0.25, 0});
+    CHECK(run(2) == std::vector<double> {0, 0.25, 0.375, 0.25, 0});
+    CHECK(run(3) == std::vector<double> {0, 0.21875, 0.3125, 0.21875, 0});
 }
 
 TEST_CASE("loop on asymmetric rod with nonzero ends is exactly the same as hand called time_step"){
@@ -171,14 +176,18 @@ TEST_CASE("loop on asymmetric rod with nonzero ends is exactly the same as hand 
         hand_called = step_copy(hand_called,r);
     }
 
-    CHECK(heat::step_loop(orig_vec,r,n) == hand_called);
+    std::vector<double> loop_called = orig_vec;
+    heat::step_loop(loop_called,r,n);
+    CHECK(loop_called == hand_called);
 }
 
-TEST_CASE("loop leaves the caller's vector unchanged"){
-    const std::vector<double> orig_vec = {5, 1, 2, 3, 7};
-    const std::vector<double> copy = orig_vec;
-    heat::step_loop(orig_vec,0.25,5);
-    CHECK(orig_vec == copy);
+TEST_CASE("loop modifies the caller's vector in place"){
+    std::vector<double> vec = {5, 1, 2, 3, 7};
+    const std::vector<double> copy = vec;
+    heat::step_loop(vec,0.25,5);
+    CHECK(vec != copy);
+    CHECK(vec.front() == copy.front());
+    CHECK(vec.back() == copy.back());
 }
 
 TEST_CASE("Decay against an exact solution"){
@@ -195,7 +204,7 @@ TEST_CASE("Decay against an exact solution"){
     auto [n,dt,r] = heat::calculate_step_parameters(dx,T,alpha,r_req);
     std::vector<double> exact_solution = heat::exact_soln(grid,1,T,alpha);
     std::vector<double> state = heat::initialise_rod(grid,heat::generate_specific_sin(L,1));
-    state = heat::step_loop(state,r,n);
+    heat::step_loop(state,r,n);
     double max_error = 0.0;
     double error;
     for(std::size_t i = 0 ; i < state.size() ; i++ ){

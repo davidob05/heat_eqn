@@ -27,9 +27,5 @@ namespace heat{
             solution[i] = decay_factor*solution[i];
         }
         return solution;
-
-
-
-        
     }
 }

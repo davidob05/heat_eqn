@@ -33,10 +33,9 @@ namespace heat{
         return {static_cast<std::size_t>(n),dt,r_used};
     }
 
-    std::vector<double> step_loop(std::vector<double> initial_state, double r, std::size_t n){
+    void step_loop(std::vector<double>& state, double r, std::size_t n){
         for(std::size_t i = 0 ; i<n ; i++){
-            time_step(initial_state, r);
+            time_step(state, r);
         }
-        return initial_state;
     }
 } // namespace heat
