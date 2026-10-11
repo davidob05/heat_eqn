@@ -18,11 +18,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 include(CTest)
 
-add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp src/solver/time_step.cpp)
+add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp src/solver/time_step.cpp src/writer/writer.cpp)
 target_include_directories(heat_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Main src/main.cpp)
-add_executable(unit_tests tests/test_grid.cpp tests/test_initialise_rod.cpp tests/test_verifier.cpp tests/test_solver.cpp)
+add_executable(unit_tests tests/test_grid.cpp tests/test_initialise_rod.cpp tests/test_verifier.cpp tests/test_solver.cpp tests/test_writer.cpp)
 
 foreach(target IN ITEMS heat_solver Main unit_tests)
     if(MSVC)
