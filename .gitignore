@@ -70,6 +70,3 @@ Testing/
 
 # generated simulation output
 results/*.csv
-
-# generated plots
-plots/*

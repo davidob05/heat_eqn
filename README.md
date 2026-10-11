@@ -69,9 +69,11 @@ CSV with the header `t,x,u_numeric,u_exact`. The first block is the initial stat
 
 ## Plotting
 ```bash
-python3 scripts/plot.py [path/to/output.csv]
+python3 scripts/plot.py [path/to/output.csv] [-o path/to/figure.png] [--show]
 ```
-The path defaults to `results/output.csv`. Generated CSVs in `results/` are git-ignored.
+The CSV path defaults to `results/output.csv`. The figure is saved next to the CSV with a `.png` extension unless `-o/--output` is given, so scratch plots stay beside their data. For figures you want to keep in git, write them to a tracked folder, for example `-o docs/figures/default_run.png`. The window only opens with `--show`. A CSV that is missing columns or looks truncated is rejected with a message rather than a traceback.
+
+The top panel shows the exact solution (lines) with the numeric solution (markers); the bottom panel shows numeric minus exact, with the largest absolute error in its title. Generated CSVs in `results/` are git-ignored.
 
 ## Project layout
 ```

@@ -1,9 +1,12 @@
 import argparse
 import sys
+import warnings
 from pathlib import Path
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+
+EXPECTED_HEADER = ["t", "x", "u_numeric", "u_exact"]
 
 
 def parse_args(argv=None):
@@ -17,7 +20,55 @@ def parse_args(argv=None):
         default=Path("results/output.csv"),
         help="CSV file written by the solver (default: %(default)s)",
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        default=None,
+        help="image path to write (default: next to the CSV, with a .png extension)",
+    )
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="open the figure in a window after saving (off by default)",
+    )
     return parser.parse_args(argv)
+
+
+def load_blocks(path):
+    with open(path) as f:
+        header = f.readline().strip().split(",")
+    if header != EXPECTED_HEADER:
+        raise ValueError(
+            f"unexpected header {header}, expected {EXPECTED_HEADER}"
+        )
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # an empty file is reported below
+            data = np.loadtxt(path, delimiter=",", skiprows=1, ndmin=2)
+    except ValueError as e:
+        raise ValueError(f"could not read data rows (file may be truncated): {e}")
+    if data.shape[0] == 0:
+        raise ValueError("file has a header but no data rows")
+    if data.shape[1] != len(EXPECTED_HEADER):
+        raise ValueError(f"expected {len(EXPECTED_HEADER)} columns, found {data.shape[1]}")
+
+    # the first block is the rows sharing the initial time
+    block_len = int(np.count_nonzero(data[:, 0] == data[0, 0]))
+    if len(data) % block_len != 0:
+        raise ValueError(
+            f"{len(data)} rows is not a whole number of {block_len}-row blocks (file may be truncated)"
+        )
+    n_blocks = len(data) // block_len
+    blocks = data.reshape(n_blocks, block_len, len(EXPECTED_HEADER))
+
+    times = blocks[:, :, 0]
+    if not np.all(times == times[:, :1]):
+        raise ValueError("time column is not constant within a block")
+    if not np.all(np.diff(times[:, 0]) > 0):
+        raise ValueError("block times are not increasing")
+    return list(blocks)
 
 
 def main(argv=None):
@@ -30,13 +81,15 @@ def main(argv=None):
     if not path.endswith(".csv"):
         print(f"Error: '{args.path}' is not a csv file", file=sys.stderr)
         return 1
-    data = np.loadtxt(path, delimiter=",", skiprows=1)
-    initial_time = data[0][0]
-    i = 0
-    while data[i][0]==initial_time:
-        i+=1
-    x = data[:i,1]
-    n_blocks = len(data)//i
+
+    try:
+        blocks = load_blocks(args.path)
+    except ValueError as e:
+        print(f"Error: '{args.path}': {e}", file=sys.stderr)
+        return 1
+
+    x = blocks[0][:, 1]
+    n_blocks = len(blocks)
     colors = matplotlib.colormaps["viridis"](np.linspace(0, 0.9, n_blocks))
 
     fig, (ax_top, ax_bottom) = plt.subplots(
@@ -45,7 +98,6 @@ def main(argv=None):
 
     fig.get_layout_engine().set(hspace=0.12)
 
-    blocks = [data[i*j:i*(j+1)] for j in range(n_blocks)]
     max_abs_diff = max(np.max(np.abs(block[:, 2] - block[:, 3])) for block in blocks)
 
     # plot the error in units of 10^exponent so the axis shows plain numbers
@@ -64,18 +116,19 @@ def main(argv=None):
             ax_bottom.plot(x, diff, color=colors[j])
 
     ax_top.set_ylabel("u(x,t)")
-    ax_top.legend()
+    # legend sits outside the axes so it never covers the curves
+    fig.legend(*ax_top.get_legend_handles_labels(), loc="outside right upper")
     ax_bottom.set_xlabel("x")
     ax_bottom.set_ylabel(f"numeric - exact (error)\n[units of $10^{{{exponent}}}$]")
     ax_top.set_title("Temperature profile (lines = exact, markers = numeric)")
-    ax_bottom.set_title("Error (numeric solution - exact solution)")
+    ax_bottom.set_title(f"Error (numeric - exact), max |error| = {max_abs_diff:.3g}")
 
-    plots_dir = Path("plots")
-    plots_dir.mkdir(exist_ok=True)
-    out_path = plots_dir / f"{args.path.stem}.png"
+    out_path = args.output if args.output is not None else args.path.with_suffix(".png")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=200)
     print(f"Saved plot to {out_path}")
-    plt.show()
+    if args.show:
+        plt.show()
     return 0
 
 
