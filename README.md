@@ -105,7 +105,7 @@ It runs `Main` for each `N` with one snapshot, writes `results/convN.csv`, reads
 The script's calculations are tested with `python3 -m unittest tests.test_convergence_script`. The N = 20 row (max error 1.0625e-3, L2 7.51e-4) is cross-checked against the C++ test in `tests/test_convergence.cpp`, and that Python test is skipped if `build/release/Main` is absent.
 
 ## Stability
-The explicit scheme is stable only for `r <= 0.5`. `scripts/instability.py` runs `Main` at several requested values of `r` (default 0.45, 0.51, 0.55, 0.6; `N = 100`, `T = 0.1`, mode 1, 100 snapshots) and plots the largest `|u|` against time on a log axis. Build the release binary first, then run from the project root:
+The explicit scheme is stable only for `r <= 0.5`. `scripts/instability.py` runs `Main` at several requested values of `r` (default 0.45, 0.51, 0.55, 0.6; `N = 100`, `T = 0.1`, mode 1, 100 snapshots) and plots the largest `|u|` against time on a log axis, in two panels sharing the time axis: the full range on top, and a zoom on 1e-3 to 1e3 below so the stable decay and the early turn-ups are visible. Build the release binary first, then run from the project root:
 
 ```bash
 python3 scripts/instability.py

@@ -11,6 +11,7 @@ from plot import load_blocks
 
 STABILITY_LIMIT = 0.5
 GROWTH_FACTOR = 10
+ZOOM_YLIM = (1e-3, 1e3)
 
 
 def peaks_over_time(blocks):
@@ -100,15 +101,19 @@ def run_case(args, r):
 
 
 def draw_figure(results, args):
-    fig, ax = plt.subplots(constrained_layout=True)
-    for r, times, peaks in results:
-        ax.semilogy(times, peaks, label=legend_label(r))
-    ax.axhline(1.0, color="k", linestyle="--", linewidth=1, label="initial maximum")
-    ax.set_xlabel("time t")
-    ax.set_ylabel("largest |u|")
-    ax.set_title(f"Growth of the largest |u| (N = {args.n_intervals}, T = {args.T}, mode {args.mode})")
-    ax.grid(True, which="both", alpha=0.3)
-    ax.legend()
+    fig, (ax_full, ax_zoom) = plt.subplots(2, 1, sharex=True, constrained_layout=True)
+    for ax in (ax_full, ax_zoom):
+        for r, times, peaks in results:
+            ax.semilogy(times, peaks, label=legend_label(r))
+        ax.axhline(1.0, color="k", linestyle="--", linewidth=1, label="initial maximum")
+        ax.set_ylabel("largest |u|")
+        ax.grid(True, which="both", alpha=0.3)
+    # the zoomed panel makes the stable decay and the early turn-ups visible
+    ax_zoom.set_ylim(*ZOOM_YLIM)
+    ax_zoom.set_xlabel("time t")
+    ax_full.set_title(f"Growth of the largest |u| (N = {args.n_intervals}, T = {args.T}, mode {args.mode})")
+    ax_zoom.set_title(f"Zoom on {ZOOM_YLIM[0]:g} to {ZOOM_YLIM[1]:g}")
+    ax_full.legend()
     args.figure.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.figure, dpi=200)
 
