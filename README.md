@@ -11,7 +11,7 @@ on a rod with both ends held at 0. The initial state is a sine mode, `u(x, 0) = 
  - C++17 compiler
  - CMake 3.25 or newer
  - First configure downloads Catch2 so internet is needed
- - Python 3 with `numpy` and `matplotlib` (only for `scripts/plot.py`)
+ - Python 3 with `numpy` and `matplotlib` (only for `scripts/plot.py`); `pip install -r requirements.txt`
 
 ## Build debug
 ```bash
@@ -77,6 +77,23 @@ The top panel shows the exact solution (lines) with the numeric solution (marker
 
 The plot script has its own tests: `python3 -m unittest tests.test_plot` from the project root.
 
+## Convergence
+Fixed `r = 0.4`, `T = 0.1`, `L = 1`, `alpha = 1`, mode 1, halving `dx` each row. With these settings `n = N^2 / 4` is a whole number, so the step is exactly `r_req` and `r` stays at 0.4 for every row. The error is the largest `|numeric - exact|` over the grid at `t = T` (it is also the largest over all snapshots, since the error grows with time). The ratio is the previous row's error divided by this row's.
+
+| N (intervals) | time steps | max error at T | ratio |
+|---|---|---|---|
+| 10 | 25 | 4.294e-3 | |
+| 20 | 100 | 1.063e-3 | 4.041 |
+| 40 | 400 | 2.650e-4 | 4.010 |
+| 80 | 1,600 | 6.620e-5 | 4.003 |
+| 160 | 6,400 | 1.655e-5 | 4.001 |
+| 320 | 25,600 | 4.136e-6 | 4.000 |
+| 640 | 102,400 | 1.034e-6 | 4.000 |
+
+The error falls by a factor of 4 each time the grid is halved, which is second-order convergence in `dx`. Because `r` is fixed, `dt = r dx^2 / alpha` shrinks with `dx^2` as well, so this is the combined space and time error, not the spatial error alone. The default run (`N = 100`, `n = 2500`) has a max error of 4.236e-5, which sits between the `N = 80` and `N = 160` rows as expected.
+
+To reproduce a row, run `./build/release/Main --n-intervals N --r-req 0.4 --T 0.1 --output results/convN.csv` and read the max error from the title of `python3 scripts/plot.py results/convN.csv`.
+
 ## Project layout
 ```
 src/
@@ -86,8 +103,9 @@ src/
   writer/     CSV output
   driver/     run_simulation (validation, snapshots, warnings) and the CLI parser
   main.cpp    Command-line entry point
-tests/        Catch2 unit tests, one file per module
+tests/        Catch2 unit tests (C++, one file per module) and test_plot.py (Python)
 scripts/      plot.py
-results/      Default output location
+results/      Default output location for CSVs (contents are git-ignored)
+docs/         Figures kept in git (e.g. docs/figures/)
 ```
 The `src` modules other than `main.cpp` are built into the `heat_solver` library, which both `Main` and `unit_tests` link against.
