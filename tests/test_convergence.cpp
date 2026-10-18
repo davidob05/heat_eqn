@@ -6,6 +6,7 @@
 #include "verifier/verifier.hpp"
 #include <vector>
 #include <cmath>
+#include <cstddef>
 
 TEST_CASE("Explicit scheme converges at r = 0.4","[convergence]"){
     const int mode = 1;
@@ -23,11 +24,12 @@ TEST_CASE("Explicit scheme converges at r = 0.4","[convergence]"){
         auto [n, dt, r_used ] = heat::calculate_step_parameters(grid.dx(),T,alpha,r_req);
         REQUIRE_THAT(T,Catch::Matchers::WithinRel(static_cast<double>(n)*dt,1e-9));
         REQUIRE_THAT(r_used,Catch::Matchers::WithinRel(r_req,1e-9));
-        REQUIRE(n==n_intervals[i]*n_intervals[i]/4);
+        REQUIRE(n==n_intervals[i]*n_intervals[i]/4);//should hold since T/dt_req = 0.1, N^2/0.4 exactly, if it fails ciel increases n up by 1
         std::vector<double> rod = heat::initialise_rod(grid, heat::generate_specific_sin(L,mode));
         heat::step_loop(rod,r_used,n);
         std::vector<double> exact = heat::exact_soln(grid,mode,T,alpha);
         double max_error = 0.0;
+        REQUIRE(rod.size() == exact.size());
         for( std::size_t j = 0 ; j < exact.size() ; j ++){
             double contender = std::abs(exact[j] - rod[j]);
             REQUIRE(std::isfinite(contender));
@@ -39,7 +41,7 @@ TEST_CASE("Explicit scheme converges at r = 0.4","[convergence]"){
     }
 
     for( std::size_t i = 1 ; i < errors.size() ; i++ ){
-        //REQUIRE(errors[i]>0.0);
+        REQUIRE(errors[i]>0.0);
         double p = std::log(errors[i-1]/errors[i])/std::log(2.0);
         INFO("Order between between number of intervals: " << n_intervals[i-1] << " and " << n_intervals[i] << " giving p = " << p);
         CHECK_THAT(p, Catch::Matchers::WithinAbs(2.0,0.1));

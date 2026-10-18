@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -121,4 +122,72 @@ TEST_CASE("Bad inputs throw input_validation exception"){
     CHECK_THROWS_AS(heat::exact_soln(grid,1,-1.0,1.0),std::invalid_argument);
     CHECK_THROWS_AS(heat::exact_soln(grid,1,NAN,1.0),std::invalid_argument);
     CHECK_THROWS_AS(heat::exact_soln(grid,1,std::numeric_limits<double>::infinity(),1.0),std::invalid_argument);
+}
+
+TEST_CASE("Ensure known error is given by max_error"){
+    std::vector<double> calculated({1.0,2.0,3.0});
+    std::vector<double> exact({1.0,5.0,2.0});
+    CHECK(heat::max_error(calculated,exact) == 3.0);
+}
+
+TEST_CASE("0.0 error for identical lists given by max_error"){
+    std::vector<double> calculated({1.0,2.0,3.0});
+    std::vector<double> exact({1.0,2.0,3.0});
+    CHECK(heat::max_error(calculated,exact) == 0.0);
+}
+
+TEST_CASE("max_error is commutative"){
+    auto calculated = GENERATE(values<std::vector<double>>({
+            {3.14, -2.71, 0.58, 42.0, 7.25, -19.83, 100.5},
+            {0.001, 12.75, -4.4, 88.12, 3.0, -0.95},
+            {-7.5, 21.36, 5.05, 0.0, 64.9, -33.21, 9.99, 1.618},
+            {15.2, -8.08, 27.45, 0.33, -61.7},
+            {2.5, 2.5, -2.5, 1000.25, 0.1, 47.63, -0.007, 8.88, 19.0}
+    }));
+
+    // same length as calculated, but different values
+    std::vector<double> exact(calculated);
+    std::rotate(exact.begin(), exact.begin() + 1, exact.end());
+
+    INFO("Calculated: " << Catch::Detail::stringify(calculated)
+         << " Exact: " << Catch::Detail::stringify(exact));
+    CHECK(heat::max_error(calculated,exact) == heat::max_error(exact,calculated));
+    CHECK(heat::max_error(calculated,exact)>=0);
+}
+
+TEST_CASE("The largest error is positive"){
+    std::vector<double> calculated({0.0,5.0,2.0});
+    std::vector<double> exact({0.0,0.0,0.0});
+    CHECK(heat::max_error(calculated,exact)==5.0);
+}
+
+TEST_CASE("Single element lists work"){
+    std::vector<double> calculated({2});
+    std::vector<double> exact({5});
+    CHECK(heat::max_error(calculated,exact)==3.0);
+}
+
+TEST_CASE("Different sized lists throw on max_error"){
+    std::vector<double> calculated({2,3});
+    std::vector<double> exact({5});
+    CHECK_THROWS_AS(heat::max_error(calculated,exact),std::invalid_argument);
+}
+
+TEST_CASE("Empty lists throw in max_error"){
+    std::vector<double> calculated({});
+    std::vector<double> exact({});
+    CHECK_THROWS_AS(heat::max_error(calculated,exact),std::invalid_argument);
+}
+
+TEST_CASE("NaN entries in input vectors throw errors"){
+    auto position = GENERATE(as<std::size_t>{},0,1,2,3,4);
+    std::vector<double> calculated({1.0,2.0,3.0,4.0,5.0});
+    std::vector<double> exact({1.0,2.0,3.0,4.0,5.0});
+    calculated[position] = std::numeric_limits<double>::quiet_NaN();
+    INFO("Lists: " << Catch::Detail::stringify(calculated) << " and " << Catch::Detail::stringify(exact));
+    CHECK_THROWS_AS(heat::max_error(calculated,exact),std::invalid_argument);
+    CHECK_THROWS_AS(heat::max_error(exact,calculated),std::invalid_argument);
+    calculated[position] = std::numeric_limits<double>::infinity();
+    CHECK_THROWS_AS(heat::max_error(calculated,exact),std::invalid_argument);
+    CHECK_THROWS_AS(heat::max_error(exact,calculated),std::invalid_argument);
 }

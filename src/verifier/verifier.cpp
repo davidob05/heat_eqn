@@ -28,4 +28,27 @@ namespace heat{
         }
         return solution;
     }
+
+    double max_error(const std::vector<double>& calculated, const std::vector<double>& exact){
+        double max_found_error = 0.0;
+        if( calculated.size() != exact.size() ){
+            throw std::invalid_argument("Exact vector and calculated vector must have equal size");
+        }
+
+        if( calculated.size() == 0 ){
+            throw std::invalid_argument("0 size input vector");
+        }
+
+        for( std::size_t j = 0 ; j < exact.size() ; j ++){
+            double contender = std::abs(exact[j] - calculated[j]);
+            if( ! std::isfinite(contender)){
+                throw std::invalid_argument("Non-finite error, check parameters passed");
+            }
+            if( max_found_error < contender){
+                max_found_error = contender;
+            }
+        }
+
+        return max_found_error;
+    }
 }
