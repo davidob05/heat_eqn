@@ -205,14 +205,7 @@ TEST_CASE("Decay against an exact solution"){
     std::vector<double> exact_solution = heat::exact_soln(grid,1,T,alpha);
     std::vector<double> state = heat::initialise_rod(grid,heat::generate_specific_sin(L,1));
     heat::step_loop(state,r,n);
-    double max_error = 0.0;
-    double error;
-    for(std::size_t i = 0 ; i < state.size() ; i++ ){
-        error = std::abs(state[i] - exact_solution[i]);
-        if( error > max_error){
-            max_error = error;
-        }
-    }
+    double max_error = heat::max_error(state,exact_solution);
     CHECK_THAT(max_error, Catch::Matchers::WithinAbs(0.0,6e-5));
     //observed difference of 4.2e-5
 }

@@ -54,7 +54,7 @@ namespace {
         return blocks;
     }
 
-    double max_error(const Block& block){
+    double block_max_error(const Block& block){
         double max_err = 0.0;
         for(std::size_t i = 0 ; i < block.numeric.size() ; i++ ){
             max_err = std::max(max_err,std::abs(block.numeric[i] - block.exact[i]));
@@ -276,7 +276,7 @@ TEST_CASE("Decay against an exact solution through the driver"){
     std::ostringstream stream;
     heat::run_simulation(params,stream);
     std::vector<Block> blocks = parse_blocks(stream.str(),101);
-    CHECK_THAT(max_error(blocks.back()),Catch::Matchers::WithinAbs(0.0,6e-5));
+    CHECK_THAT(block_max_error(blocks.back()),Catch::Matchers::WithinAbs(0.0,6e-5));
 }
 
 TEST_CASE("Block maximum never increases and never exceeds the initial maximum"){
@@ -301,7 +301,7 @@ TEST_CASE("Mode 2 decay against an exact solution through the driver"){
     std::ostringstream stream;
     heat::run_simulation(params,stream);
     std::vector<Block> blocks = parse_blocks(stream.str(),101);
-    CHECK_THAT(max_error(blocks.back()),Catch::Matchers::WithinAbs(0.0,5.3e-5));
+    CHECK_THAT(block_max_error(blocks.back()),Catch::Matchers::WithinAbs(0.0,5.3e-5));
     //observed difference of 3.5e-5
 }
 

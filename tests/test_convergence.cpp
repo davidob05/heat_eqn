@@ -28,16 +28,7 @@ TEST_CASE("Explicit scheme converges at r = 0.4","[convergence]"){
         std::vector<double> rod = heat::initialise_rod(grid, heat::generate_specific_sin(L,mode));
         heat::step_loop(rod,r_used,n);
         std::vector<double> exact = heat::exact_soln(grid,mode,T,alpha);
-        double max_error = 0.0;
-        REQUIRE(rod.size() == exact.size());
-        for( std::size_t j = 0 ; j < exact.size() ; j ++){
-            double contender = std::abs(exact[j] - rod[j]);
-            REQUIRE(std::isfinite(contender));
-            if( max_error < contender){
-                max_error = contender;
-            }
-        }
-        errors[i] = max_error;
+        errors[i] = heat::max_error(rod,exact);
     }
 
     for( std::size_t i = 1 ; i < errors.size() ; i++ ){
