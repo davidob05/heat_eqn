@@ -51,4 +51,32 @@ namespace heat{
 
         return max_found_error;
     }
+
+    double l2_error(const std::vector<double>& calculated, const std::vector<double>& exact, double dx){
+        if( calculated.size() != exact.size() ){
+            throw std::invalid_argument("Inputted vectors must be of equal size");
+        }
+
+        if( calculated.size() == 0 ){
+            throw std::invalid_argument("Size of input vectors must be greater than 0");
+        }
+
+        if( !std::isfinite(dx) || dx <= 0.0){
+            throw std::invalid_argument("dx must be positive and finite");
+        }
+
+        double sum_sq = 0.0;
+
+        for (std::size_t i = 0 ; i < calculated.size() ; i++ ){
+            sum_sq = sum_sq + (calculated[i] - exact[i])*(calculated[i] - exact[i]);
+        }
+
+        double l2_norm = std::sqrt(sum_sq*dx);
+        
+        if (!std::isfinite(l2_norm)){
+            throw std::invalid_argument("Sum of squares multiplied with dx of difference gives infinite value, vectors too far apart and/or dx too large");
+        }
+
+        return l2_norm;
+    }
 }

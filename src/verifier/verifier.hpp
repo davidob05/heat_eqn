@@ -8,4 +8,5 @@ namespace heat{
     std::function<double(double)> generate_specific_sin(double length, int mode);
     std::vector<double> exact_soln(const Grid& grid, int mode, double t, double alpha);
     double max_error(const std::vector<double>& calculated, const std::vector<double>& exact);
+    double l2_error(const std::vector<double>& calculated, const std::vector<double>& exact, double dx);
 }//namespace heat

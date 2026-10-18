@@ -179,7 +179,7 @@ TEST_CASE("Empty lists throw in max_error"){
     CHECK_THROWS_AS(heat::max_error(calculated,exact),std::invalid_argument);
 }
 
-TEST_CASE("NaN entries in input vectors throw errors"){
+TEST_CASE("NaN entries in input vectors throw errors in max_error"){
     auto position = GENERATE(as<std::size_t>{},0,1,2,3,4);
     std::vector<double> calculated({1.0,2.0,3.0,4.0,5.0});
     std::vector<double> exact({1.0,2.0,3.0,4.0,5.0});
@@ -190,4 +190,92 @@ TEST_CASE("NaN entries in input vectors throw errors"){
     calculated[position] = std::numeric_limits<double>::infinity();
     CHECK_THROWS_AS(heat::max_error(calculated,exact),std::invalid_argument);
     CHECK_THROWS_AS(heat::max_error(exact,calculated),std::invalid_argument);
+}
+
+TEST_CASE("Check known exact L2 error, dx = 1"){
+    std::vector<double> calculated({0.0,0.0});
+    std::vector<double> exact({3.0,4.0});
+    double dx = 1.0;
+    CHECK(heat::l2_error(calculated,exact,dx)==5.0);
+}
+
+TEST_CASE("Check known exact L2 error, dx = 0.25"){
+    std::vector<double> calculated({0.0,0.0});
+    std::vector<double> exact({3.0,4.0});
+    double dx = 0.25;
+    CHECK(heat::l2_error(calculated,exact,dx)==2.5);
+}
+
+TEST_CASE("Check known exact L2 error, one element"){
+    std::vector<double> calculated({0.0});
+    std::vector<double> exact({3.0});
+    double dx = 4.0;
+    CHECK(heat::l2_error(calculated,exact,dx)==6.0);
+}
+
+TEST_CASE("Check identical lists give exactly 0.0 error on L2"){
+    std::vector<double> calculated({0.0,1.0,3.0,10.0});
+    std::vector<double> exact({0.0,1.0,3.0,10.0});
+    double dx = 1.0;
+    CHECK(heat::l2_error(calculated,exact,dx)==0.0);
+}
+
+TEST_CASE("Check L2 is commutative"){
+    std::vector<double> calculated({0.1,2.0,3.5,10.75});
+    std::vector<double> exact({0.0,1.0,3.0,10.0});
+    double dx = 1.0;
+    CHECK(heat::l2_error(calculated,exact,dx) == heat::l2_error(exact,calculated,dx));
+}
+
+
+TEST_CASE("Different sized lists throw on L2_error"){
+    std::vector<double> calculated({2,3});
+    std::vector<double> exact({5});
+    double dx = 1.0;
+    CHECK_THROWS_AS(heat::l2_error(calculated,exact,dx),std::invalid_argument);
+    CHECK_THROWS_AS(heat::l2_error(exact,calculated,dx),std::invalid_argument);
+
+}
+
+TEST_CASE("Empty lists throw in L2_error"){
+    std::vector<double> calculated({});
+    std::vector<double> exact({});
+    double dx = 1.0;
+    CHECK_THROWS_AS(heat::l2_error(calculated,exact,dx),std::invalid_argument);
+}
+
+TEST_CASE("NaN entries in input vectors throw errors in L2_error"){
+    auto position = GENERATE(as<std::size_t>{},0,1,2,3,4);
+    std::vector<double> calculated({1.0,2.0,3.0,4.0,5.0});
+    std::vector<double> exact({1.0,2.0,3.0,4.0,5.0});
+    double dx = 1.0;
+    calculated[position] = std::numeric_limits<double>::quiet_NaN();
+    INFO("Lists: " << Catch::Detail::stringify(calculated) << " and " << Catch::Detail::stringify(exact));
+    CHECK_THROWS_AS(heat::l2_error(calculated,exact,dx),std::invalid_argument);
+    CHECK_THROWS_AS(heat::l2_error(exact,calculated,dx),std::invalid_argument);
+    calculated[position] = std::numeric_limits<double>::infinity();
+    CHECK_THROWS_AS(heat::l2_error(calculated,exact,dx),std::invalid_argument);
+    CHECK_THROWS_AS(heat::l2_error(exact,calculated,dx),std::invalid_argument);
+}
+
+TEST_CASE("0, negative, NaN or infinite dx throw error on l2_error"){
+    std::vector<double> calculated({1.0,2.0,3.0,4.0,5.0});
+    std::vector<double> exact({1.0,2.0,3.0,4.0,5.0});
+    auto dx = GENERATE(as<double>{},0.0,-1.0,std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::infinity());
+    INFO("dx = " << dx);
+    CHECK_THROWS_AS(heat::l2_error(calculated,exact,dx),std::invalid_argument);
+}
+
+TEST_CASE("Input params giving a gap too large throw error on L2_error"){
+    std::vector<double> calculated({0.0});
+    std::vector<double> exact({1e200});
+    double dx = 1;
+    CHECK_THROWS_AS(heat::l2_error(calculated,exact,dx),std::invalid_argument);
+}
+
+TEST_CASE("Input params that gap to give less than infinite sum of squares, but infinite once multiplied with dx"){
+    std::vector<double> calculated({0.0});
+    std::vector<double> exact({1e154});
+    double dx = 10;
+    CHECK_THROWS_AS(heat::l2_error(calculated,exact,dx),std::invalid_argument);
 }
