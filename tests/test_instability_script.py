@@ -107,9 +107,9 @@ class CheckBehaviourTest(unittest.TestCase):
 
 class LegendLabelTest(unittest.TestCase):
     def test_labels(self):
-        self.assertEqual(inst.legend_label(0.45), "r = 0.45 (requested)")
-        self.assertEqual(inst.legend_label(0.6), "r = 0.6 (requested)")
-        self.assertEqual(inst.legend_label(0.5), "r = 0.5 (requested)")
+        self.assertEqual(inst.legend_label(0.45), "r = 0.45")
+        self.assertEqual(inst.legend_label(0.6), "r = 0.6")
+        self.assertEqual(inst.legend_label(0.5), "r = 0.5")
 
 
 if __name__ == "__main__":

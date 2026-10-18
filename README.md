@@ -117,17 +117,32 @@ The script stops with a message and a non-zero exit code if the solver output do
 
 The `r` actually used is slightly below the requested one, because the step is shrunk so the run ends exactly at `T`. A request of 0.51 runs at about 0.5099, which is still unstable.
 
-Final largest `|u|` at `t = T`, from the run that produced the figure:
+### Why it goes unstable
+Any profile can be split into sine waves of different wavelengths, and the explicit scheme multiplies each wave by a fixed growth factor `g` at every step. A wave with `|g| < 1` shrinks and one with `|g| > 1` grows exponentially. The shortest wave the grid can hold, a sawtooth that alternates sign at every grid point, has `g = 1 - 4r`. Smoother waves have `g` closer to 1, so the sawtooth is the first to fail. It satisfies `|g| <= 1` exactly when `r <= 1/2`, which is the stability limit.
 
-| Requested r | Final largest `|u|` | My prediction |
-|---|---|---|
-| 0.45 | 0.372656 | _to fill in_ |
-| 0.51 | 3.82119e+15 | _to fill in_ |
-| 0.55 | 1.51741e+126 | _to fill in_ |
-| 0.6 | 1.71643e+226 | _to fill in_ |
+The initial sine is smooth and contains almost no sawtooth. The sawtooth is seeded only by rounding error, around `1e-16` for doubles. The plotted largest `|u|` is whichever part is bigger, so each unstable curve shows the smooth part decaying (from 1 towards about 0.37 at `T`), then a sharp turn upward when the growing sawtooth overtakes it. On the log axis the growing part is a straight line.
 
-### Predictions
-_Space for my predictions and how they compare with the results: to fill in._
+### When the curve turns up
+The sawtooth grows by `|1 - 4r|` per step from about `1e-16`, so it reaches size 1 after `k = ln(1e16) / ln|1 - 4r|` steps, at time `t = k * dt`. With `N = 100`, `dt = r_used * dx^2`. Worked out by hand before the run, from handwritten notes, using the `r` actually used:
+
+| Requested r | r used | Steps to turn up | Turn-up time t |
+|---|---|---|---|
+| 0.51 | 0.509944 | 944.5 | 0.048166 |
+| 0.55 | 0.549753 | 203.0 | 0.011159 |
+| 0.6 | 0.599880 | 109.6 | 0.006575 |
+
+These match the graph to within about 6%. In the CSVs the 0.51 curve falls to about 0.67 by t = 0.041 and is back at 1 by t = 0.051. The 0.55 curve is still near 0.9 at t = 0.0104 and enormous by t = 0.0208. The 0.6 curve is already about 4e8 by t = 0.0102. The turn-up moves earlier as `r` increases because `|g|` is larger.
+
+### Size of the seed
+The turn-up times above assume a seed of `1e-16`, the machine epsilon for doubles. That was an initial guess made before the runs. After the runs, the seed was fitted by working backwards from the measured final peaks, `seed = peak at T / |g|^n` with the `r` actually used. This gives about 1e-17.6 at r = 0.51, 1e-17.2 at r = 0.55 and 1e-17.1 at r = 0.6, so the effective seed is about `1e-17`, not `1e-16`. Because `1e-17` was fitted to these same runs, it reproducing the final peaks (exponents of about 16.2, 126.4 and 226.3 against measured 15.6, 126.2 and 226.2) is by construction and is not independent evidence. The fit uses only three points, so `1e-17` is an order-of-magnitude estimate. A likely reason for a seed below machine epsilon is that rounding error is spread across all the grid-point modes, so each mode, the sawtooth included, receives roughly `1e-16 / sqrt(N)`, which is about 1e-17 for `N = 100`; this explanation has not been tested.
+
+A seed of 1e-17 instead of 1e-16 delays every turn-up by a factor of 17/16, about 6%, so the table above is about 6% early. This agrees with the 0.51 curve, which is back at about 1 near t = 0.051 (1.03 in the CSV) rather than 0.048.
+
+### The stable case
+For `r = 0.45`, `g = 1 - 4r = -0.8`, so each step multiplies the sawtooth by 0.8 in size. The same formula, `ln(1e-16) / ln(0.8)`, now gives the number of steps a sawtooth of size 1 needs to shrink to rounding level: about 165 steps, or `t` of about 0.0074. This is the time for the fastest-varying part of the solution to disappear completely, which is about 7% of the run.
+
+The sawtooth has a time constant of `dt / |ln 0.8|`, about 2e-4, while the smooth sine decays with a time constant of about `1/pi^2`, roughly 0.1. The sawtooth therefore dies about 500 times faster than the smooth part. This is why diffusion smooths data and why a stable run looks clean: rounding errors in the high modes are wiped out within a few steps of appearing. The stable peak at `T` follows the exact solution, `exp(-pi^2 * alpha * T / L^2) = 0.3727` for `L = 1`, `alpha = 1`, `T = 0.1`, and the r = 0.45 run ends at 0.372656, in agreement with it.
+
 
 ## Project layout
 ```

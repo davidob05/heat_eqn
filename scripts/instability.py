@@ -51,7 +51,7 @@ def check_behaviour(r_req, peaks):
 
 
 def legend_label(r_req):
-    return f"r = {r_req:g} (requested)"
+    return f"r = {r_req:g}"
 
 
 # running the solver and drawing
