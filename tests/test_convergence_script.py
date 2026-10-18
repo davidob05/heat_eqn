@@ -141,6 +141,12 @@ class ReferenceLineTest(unittest.TestCase):
         slope = math.log(ref[0] / ref[2]) / math.log(dxs[0] / dxs[2])
         self.assertAlmostEqual(slope, 2.0)
 
+    def test_offset_shifts_by_constant_factor_and_keeps_slope(self):
+        dxs, errs = [0.4, 0.2, 0.1], [9.0, 2.0, 0.5]
+        base = c.reference_line(dxs, errs, 1)
+        shifted = c.reference_line(dxs, errs, 1, offset=3.0)
+        np.testing.assert_allclose(shifted, 3.0 * base)
+
 
 @unittest.skipUnless(MAIN.is_file(), "release Main not built")
 class CrossCheckTest(unittest.TestCase):

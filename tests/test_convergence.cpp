@@ -15,8 +15,8 @@ TEST_CASE("Explicit scheme converges at r = 0.4 with max_error norm","[convergen
     const double T = 0.1;
     const double r_req = 0.4;
 
-    std::vector<std::size_t> n_intervals = {20,40,80,160,320};
-    std::vector<double> errors = {0.0,0.0,0.0,0.0,0.0};
+    std::vector<std::size_t> n_intervals = {10,20,40,80,160,320,640};
+    std::vector<double> errors(n_intervals.size(), 0.0);
     
     for ( std::size_t i = 0 ; i < n_intervals.size() ; i++ ){
         INFO("N = " << n_intervals[i]);
@@ -47,8 +47,8 @@ TEST_CASE("Explicit scheme converges at r = 0.4 with l2_error norm","[convergenc
     const double T = 0.1;
     const double r_req = 0.4;
 
-    std::vector<std::size_t> n_intervals = {20,40,80,160,320};
-    std::vector<double> errors = {0.0,0.0,0.0,0.0,0.0};
+    std::vector<std::size_t> n_intervals = {10,20,40,80,160,320,640};
+    std::vector<double> errors(n_intervals.size(), 0.0);
     
     for ( std::size_t i = 0 ; i < n_intervals.size() ; i++ ){
         INFO("N = " << n_intervals[i]);

@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from plot import load_blocks
 
 DEFAULT_NS = [10, 20, 40, 80, 160, 320, 640]
+REFERENCE_OFFSET = 3.0
 
 
 def parse_args(argv=None):
@@ -74,10 +75,13 @@ def time_steps(n, length, alpha, T, r):
     return int(rounded)
 
 
-def reference_line(dxs, errs, index, slope=2.0):
-    """Values at dxs of the line errs[index] * (dx/dxs[index])**slope."""
+def reference_line(dxs, errs, index, slope=2.0, offset=1.0):
+    """Values at dxs of the line offset * errs[index] * (dx/dxs[index])**slope.
+
+    offset=1 passes through the data point; other values shift the line by a constant factor.
+    """
     dxs = np.asarray(dxs, dtype=float)
-    return errs[index] * (dxs / dxs[index]) ** slope
+    return offset * errs[index] * (dxs / dxs[index]) ** slope
 
 
 def format_table(rows):
@@ -137,7 +141,11 @@ def draw_figure(rows, args):
     fig, ax = plt.subplots(constrained_layout=True)
     ax.loglog(dxs, max_errs, "o-", label="max error")
     ax.loglog(dxs, l2_errs, "s-", label="L2 error")
-    ax.loglog(dxs, reference_line(dxs, max_errs, len(dxs) // 2), "k--", label="slope 2 reference")
+    # shifted up by a constant factor so it does not hide the data it is parallel to
+    ax.loglog(
+        dxs, reference_line(dxs, max_errs, len(dxs) // 2, offset=REFERENCE_OFFSET), "k--",
+        label=f"slope 2 reference (x{REFERENCE_OFFSET:g})",
+    )
     ax.set_xlabel("dx")
     ax.set_ylabel("error at t = T")
     ax.set_title(f"Convergence of the explicit scheme (r = {args.r_req}, T = {args.T}, mode {args.mode})")
