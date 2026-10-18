@@ -104,6 +104,31 @@ It runs `Main` for each `N` with one snapshot, writes `results/convN.csv`, reads
 
 The script's calculations are tested with `python3 -m unittest tests.test_convergence_script`. The N = 20 row (max error 1.0625e-3, L2 7.51e-4) is cross-checked against the C++ test in `tests/test_convergence.cpp`, and that Python test is skipped if `build/release/Main` is absent.
 
+## Stability
+The explicit scheme is stable only for `r <= 0.5`. `scripts/instability.py` runs `Main` at several requested values of `r` (default 0.45, 0.51, 0.55, 0.6; `N = 100`, `T = 0.1`, mode 1, 100 snapshots) and plots the largest `|u|` against time on a log axis. Build the release binary first, then run from the project root:
+
+```bash
+python3 scripts/instability.py
+```
+
+![Growth of the largest |u| for stable and unstable r](docs/figures/instability.png)
+
+The script stops with a message and a non-zero exit code if the solver output does not match the expected stability: a stable `r` must print nothing on stderr and end with a smaller peak than it started with, and an unstable `r` must print a `Warning` and end more than 10 times above its start. Options (all optional): `--exe`, `--rs`, `--n-intervals`, `--snapshots`, `--length`, `--alpha`, `--mode`, `--T`, `--csv-dir`, `--figure`. Its calculations are tested with `python3 -m unittest tests.test_instability_script`.
+
+The `r` actually used is slightly below the requested one, because the step is shrunk so the run ends exactly at `T`. A request of 0.51 runs at about 0.5099, which is still unstable.
+
+Final largest `|u|` at `t = T`, from the run that produced the figure:
+
+| Requested r | Final largest `|u|` | My prediction |
+|---|---|---|
+| 0.45 | 0.372656 | _to fill in_ |
+| 0.51 | 3.82119e+15 | _to fill in_ |
+| 0.55 | 1.51741e+126 | _to fill in_ |
+| 0.6 | 1.71643e+226 | _to fill in_ |
+
+### Predictions
+_Space for my predictions and how they compare with the results: to fill in._
+
 ## Project layout
 ```
 src/
@@ -114,8 +139,10 @@ src/
   driver/     run_simulation (validation, snapshots, warnings) and the CLI parser
   main.cpp    Command-line entry point
 tests/        Catch2 unit tests (C++, one file per module, plus test_convergence.cpp)
-              and Python tests (test_plot.py, test_convergence_script.py)
-scripts/      plot.py (plot one run) and convergence.py (grid-refinement study)
+              and Python tests (test_plot.py, test_convergence_script.py,
+              test_instability_script.py)
+scripts/      plot.py (plot one run), convergence.py (grid-refinement study)
+              and instability.py (stable vs unstable r)
 results/      Default output location for CSVs (contents are git-ignored)
 docs/         Kept in git: convergence_table.md and figures (docs/figures/)
 ```
