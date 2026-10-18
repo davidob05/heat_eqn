@@ -11,7 +11,7 @@ on a rod with both ends held at 0. The initial state is a sine mode, `u(x, 0) = 
  - C++17 compiler
  - CMake 3.25 or newer
  - First configure downloads Catch2 so internet is needed
- - Python 3 with `numpy` and `matplotlib` (only for `scripts/plot.py`); `pip install -r requirements.txt`
+ - Python 3 with `numpy` and `matplotlib` (only for the scripts in `scripts/`); `pip install -r requirements.txt`
 
 ## Build debug
 ```bash
@@ -78,21 +78,31 @@ The top panel shows the exact solution (lines) with the numeric solution (marker
 The plot script has its own tests: `python3 -m unittest tests.test_plot` from the project root.
 
 ## Convergence
-Fixed `r = 0.4`, `T = 0.1`, `L = 1`, `alpha = 1`, mode 1, halving `dx` each row. With these settings `n = N^2 / 4` is a whole number, so the step is exactly `r_req` and `r` stays at 0.4 for every row. The error is the largest `|numeric - exact|` over the grid at `t = T` (it is also the largest over all snapshots, since the error grows with time). The ratio is the previous row's error divided by this row's.
+Fixed `r = 0.4`, `T = 0.1`, `L = 1`, `alpha = 1`, mode 1, halving `dx` each row. With these settings `n = N^2 / 4` is a whole number, so the step is exactly `r_req` and `r` stays at 0.4 for every row. Errors are measured at `t = T` (the max error is also the largest over all snapshots, since the error grows with time). The max error is the largest `|numeric - exact|` over the grid; the L2 error is `sqrt(dx * sum(d^2))`. Each order is `log(err_prev / err) / log(dx_prev / dx)`.
 
-| N (intervals) | time steps | max error at T | ratio |
-|---|---|---|---|
-| 10 | 25 | 4.294e-3 | |
-| 20 | 100 | 1.063e-3 | 4.041 |
-| 40 | 400 | 2.650e-4 | 4.010 |
-| 80 | 1,600 | 6.620e-5 | 4.003 |
-| 160 | 6,400 | 1.655e-5 | 4.001 |
-| 320 | 25,600 | 4.136e-6 | 4.000 |
-| 640 | 102,400 | 1.034e-6 | 4.000 |
+| N | dx | time steps | max error | max-error order | L2 error | L2 order |
+|---|---|---|---|---|---|---|
+| 10 | 0.1 | 25 | 4.2941e-03 | - | 3.0364e-03 | - |
+| 20 | 0.05 | 100 | 1.0625e-03 | 2.01 | 7.5131e-04 | 2.01 |
+| 40 | 0.025 | 400 | 2.6495e-04 | 2.00 | 1.8735e-04 | 2.00 |
+| 80 | 0.0125 | 1,600 | 6.6195e-05 | 2.00 | 4.6807e-05 | 2.00 |
+| 160 | 0.00625 | 6,400 | 1.6546e-05 | 2.00 | 1.1700e-05 | 2.00 |
+| 320 | 0.003125 | 25,600 | 4.1364e-06 | 2.00 | 2.9249e-06 | 2.00 |
+| 640 | 0.001563 | 102,400 | 1.0341e-06 | 2.00 | 7.3121e-07 | 2.00 |
 
-The error falls by a factor of 4 each time the grid is halved, which is second-order convergence in `dx`. Because `r` is fixed, `dt = r dx^2 / alpha` shrinks with `dx^2` as well, so this is the combined space and time error, not the spatial error alone. The default run (`N = 100`, `n = 2500`) has a max error of 4.236e-5, which sits between the `N = 80` and `N = 160` rows as expected.
+![Convergence of the explicit scheme](docs/figures/convergence.png)
 
-To reproduce a row, run `./build/release/Main --n-intervals N --r-req 0.4 --T 0.1 --output results/convN.csv` and read the max error from the title of `python3 scripts/plot.py results/convN.csv`.
+The error falls by a factor of 4 each time the grid is halved, which is second-order convergence in `dx` (the points run parallel to the dashed slope-2 line). Because `r` is fixed, `dt = r dx^2 / alpha` shrinks with `dx^2` as well, so this is the combined space and time error, not the spatial error alone. The default run (`N = 100`, `n = 2500`) has a max error of 4.236e-5, which sits between the `N = 80` and `N = 160` rows as expected.
+
+To reproduce the table and figure with one command (build the release binary first, run from the project root):
+
+```bash
+python3 scripts/convergence.py
+```
+
+It runs `Main` for each `N` with one snapshot, writes `results/convN.csv`, reads them with the same loader as `plot.py`, and writes `docs/convergence_table.md` and `docs/figures/convergence.png`. It stops with a message and a non-zero exit code if `Main` fails or prints anything on stderr (for example an unstable `r`), if a CSV is malformed, or if the last block is not at `t = T`. Options (all optional): `--exe`, `--ns`, `--length`, `--alpha`, `--mode`, `--T`, `--r-req`, `--csv-dir`, `--figure`, `--table`.
+
+The script's calculations are tested with `python3 -m unittest tests.test_convergence_script`. The N = 20 row (max error 1.0625e-3, L2 7.51e-4) is cross-checked against the C++ test in `tests/test_convergence.cpp`, and that Python test is skipped if `build/release/Main` is absent.
 
 ## Project layout
 ```
@@ -103,9 +113,10 @@ src/
   writer/     CSV output
   driver/     run_simulation (validation, snapshots, warnings) and the CLI parser
   main.cpp    Command-line entry point
-tests/        Catch2 unit tests (C++, one file per module) and test_plot.py (Python)
-scripts/      plot.py
+tests/        Catch2 unit tests (C++, one file per module, plus test_convergence.cpp)
+              and Python tests (test_plot.py, test_convergence_script.py)
+scripts/      plot.py (plot one run) and convergence.py (grid-refinement study)
 results/      Default output location for CSVs (contents are git-ignored)
-docs/         Figures kept in git (e.g. docs/figures/)
+docs/         Kept in git: convergence_table.md and figures (docs/figures/)
 ```
 The `src` modules other than `main.cpp` are built into the `heat_solver` library, which both `Main` and `unit_tests` link against.
