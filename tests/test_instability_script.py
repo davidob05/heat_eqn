@@ -97,6 +97,10 @@ class CheckBehaviourTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             inst.check_behaviour(0.6, [1, 9.9])
 
+    def test_unstable_exactly_ten_raises(self):
+        with self.assertRaises(ValueError):
+            inst.check_behaviour(0.6, [1, 10])
+
     def test_unstable_just_over_ten(self):
         inst.check_behaviour(0.6, [1, 10.1])
 
