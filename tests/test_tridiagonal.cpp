@@ -6,6 +6,7 @@
 
 TEST_CASE("Invalid sized vectors throw exception in Tridiagonal matrix constructor"){
     CHECK_THROWS_AS(heat::TridiagonalMatrix({-1,-1},{2,2,2},{-1}), std::invalid_argument);
+    CHECK_THROWS_AS(heat::TridiagonalMatrix({-1},{2,2,2},{-1,-1}), std::invalid_argument);
     CHECK_THROWS_AS(heat::TridiagonalMatrix({-1,-1},{2,2},{-1,-1}), std::invalid_argument);
 }
 
