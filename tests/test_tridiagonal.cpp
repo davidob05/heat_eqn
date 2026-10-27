@@ -2,7 +2,19 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <stdexcept>
+#include <catch2/matchers/catch_matchers_vector.hpp>
 
+TEST_CASE("Invalid sized vectors throw exception in Tridiagonal matrix constructor"){
+    CHECK_THROWS_AS(heat::TridiagonalMatrix({-1,-1},{2,2,2},{-1}), std::invalid_argument);
+    CHECK_THROWS_AS(heat::TridiagonalMatrix({-1,-1},{2,2},{-1,-1}), std::invalid_argument);
+}
+
+TEST_CASE("Valid sized vectors make Tridiagonal matrix properly in the constructor"){
+    heat::TridiagonalMatrix mat({-1,-1},{2,2,2},{1,1});
+    CHECK_THAT(mat.diag, Catch::Matchers::Equals(std::vector<double>{2,2,2}));
+    CHECK_THAT(mat.upper_diag, Catch::Matchers::Equals(std::vector<double>{1,1}));
+    CHECK_THAT(mat.lower_diag, Catch::Matchers::Equals(std::vector<double>{-1,-1}));
+}
 
 TEST_CASE("Solves a symmetric 3x3 system"){
     heat::TridiagonalMatrix tridiag({-1,-1},{2,2,2},{-1,-1});
@@ -14,7 +26,3 @@ TEST_CASE("Solves a symmetric 3x3 system"){
     }
 }
 
-TEST_CASE("Invalid sized vectors throw exception in Tridiagonal matrix constructor"){
-    CHECK_THROWS_AS(heat::TridiagonalMatrix({-1,-1},{2,2,2},{-1}), std::invalid_argument);
-    CHECK_THROWS_AS(heat::TridiagonalMatrix({-1,-1},{2,2},{-1,-1}), std::invalid_argument);
-}
