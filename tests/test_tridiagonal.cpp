@@ -43,3 +43,14 @@ TEST_CASE("Solves an asymmetric 3x3 system"){
         CHECK_THAT(result[i],Catch::Matchers::WithinAbs(static_cast<double>(i)+1, 1e-12));
     }
 }
+
+
+TEST_CASE("Solves an symmetric 2x2 system"){
+    heat::TridiagonalMatrix tridiag({1},{3,2},{1});
+    std::vector<double> d({5,5});
+    std::vector<double> result = heat::solve_tridiagonal(tridiag,d);
+    REQUIRE(result.size()==2);
+    for( std::size_t i = 0 ; i < 2 ; i++ ){
+        CHECK_THAT(result[i],Catch::Matchers::WithinAbs(static_cast<double>(i)+1, 1e-12));
+    }
+}
