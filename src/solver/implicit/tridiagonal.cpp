@@ -1,5 +1,6 @@
 #include <vector>
 #include "tridiagonal.hpp"
+#include <cmath>
 
 namespace heat{
     std::vector<double> solve_tridiagonal(
@@ -14,11 +15,16 @@ namespace heat{
         std::size_t n = tri_mat.diag.size();
 
         for ( std::size_t i = 1 ; i < n ; i++ ){
+            if ( diag_work[i-1] == 0 ){
+                throw std::runtime_error("Zero or NaN pivot encountered, the Thomas algorithm cannot continue without pivoting");
+            }
             double multiplier = tri_mat.lower_diag[i-1]/diag_work[i-1];
             diag_work[i]-= multiplier*tri_mat.upper_diag[i-1];
             x[i] -= multiplier*x[i-1];
         }
-
+        if ( diag_work[n-1] == 0 ){
+                throw std::runtime_error("Zero or NaN pivot encountered, the Thomas algorithm cannot continue without pivoting");
+        }
         x[n-1] /= diag_work[n-1];
 
         for ( std::size_t i = n - 1 ; i > 0 ; i-- ){
