@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "core/grid.hpp"
 #include "core/initialise_rod.hpp"
-#include "solver/time_step.hpp"
+#include "solver/explicit/time_step.hpp"
 #include "verifier/verifier.hpp"
 #include <vector>
 #include <cmath>

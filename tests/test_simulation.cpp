@@ -2,7 +2,7 @@
 #include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "driver/simulation.hpp"
-#include "solver/time_step.hpp"
+#include "solver/explicit/time_step.hpp"
 #include "core/initialise_rod.hpp"
 #include "core/grid.hpp"
 #include "verifier/verifier.hpp"
