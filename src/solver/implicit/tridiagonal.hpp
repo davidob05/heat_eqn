@@ -18,7 +18,7 @@ namespace heat{
         diag(std::move(middle)), 
         upper_diag(std::move(upper))
         {
-            if ( lower.size() != upper.size() || middle.size() - 1 != upper.size()){
+            if ( lower_diag.size() != upper_diag.size() || diag.size() != upper_diag.size() + 1){
                 throw std::invalid_argument("Diagonal of length n requires both adjacent matrix rows to have n-1 length");
             }
         }
