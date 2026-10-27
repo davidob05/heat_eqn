@@ -26,3 +26,10 @@ TEST_CASE("Solves a symmetric 3x3 system"){
     }
 }
 
+TEST_CASE("Tridiagonal solver throws error on mismatched matrix and d sizes"){
+    heat::TridiagonalMatrix tridiag({-1,-1},{2,2,2},{-1,-1});
+    std::vector<double> d({1,1});
+    std::vector<double> e({1,1,1,1});
+    CHECK_THROWS_AS(heat::solve_tridiagonal(tridiag,d), std::invalid_argument);
+    CHECK_THROWS_AS(heat::solve_tridiagonal(tridiag,e), std::invalid_argument);
+}
