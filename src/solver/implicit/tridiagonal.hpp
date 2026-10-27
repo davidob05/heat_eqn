@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include <stdexcept>
+#include <utility>
 
 namespace heat{
     struct TridiagonalMatrix{
@@ -11,9 +13,11 @@ namespace heat{
             std::vector<double> lower,
             std::vector<double> middle,
             std::vector<double> upper 
-        ){
-            lower_diag=lower;diag=middle;upper_diag=upper;
-        }
+        ) : 
+        lower_diag(std::move(lower)), 
+        diag(std::move(middle)), 
+        upper_diag(std::move(upper))
+        {}
     };
 
     std::vector<double> solve_tridiagonal(

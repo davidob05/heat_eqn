@@ -6,7 +6,8 @@ namespace heat{
         const TridiagonalMatrix& tri_mat, 
         const std::vector<double>& d
     ){
-        return std::vector<double> {0.0};
+        std::vector<double> vec(d.size(),0.0);
+        return vec;
     }
 
 }
