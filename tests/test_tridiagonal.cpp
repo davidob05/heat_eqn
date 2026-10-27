@@ -36,10 +36,10 @@ TEST_CASE("Tridiagonal solver throws error on mismatched matrix and d sizes"){
 
 TEST_CASE("Solves an asymmetric 3x3 system"){
     heat::TridiagonalMatrix tridiag({1,2},{4,5,6},{2,1});
-    std::vector<double> d({1,0,1});
+    std::vector<double> d({8,14,22});
     std::vector<double> result = heat::solve_tridiagonal(tridiag,d);
     REQUIRE(result.size()==3);
     for( std::size_t i = 0 ; i < 3 ; i++ ){
-        CHECK_THAT(result[i],Catch::Matchers::WithinAbs(1.0, 1e-12));
+        CHECK_THAT(result[i],Catch::Matchers::WithinAbs(static_cast<double>(i)+1, 1e-12));
     }
 }
