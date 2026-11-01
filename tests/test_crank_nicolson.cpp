@@ -52,12 +52,23 @@ TEST_CASE("Endpoints are unchanged Crank Nicholson"){
     heat::crank_nicolson(vec,0.5);
     CHECK(vec[0] == 5.0);
     CHECK(vec[2] == 7.0);
-    CHECK_THAT(vec[1], Catch::Matchers::WithinAbs(1.0/3.0,1e-12));
+    CHECK_THAT(vec[1], Catch::Matchers::WithinAbs(13.0/3.0,1e-12));
 }
+
 TEST_CASE("r=0 leaves vector unchanged Crank Nicholson"){
     std::vector<double> vec({0.0, 0.3, 0.7, 0.0});
     heat::crank_nicolson(vec,0.0);
     CHECK(vec == std::vector<double>({0.0, 0.3, 0.7, 0.0}));
+}
+
+TEST_CASE("Ends propagate as expected with 0 interior Crank Nicolson"){
+    std::vector<double> vec({2.0, 0.0, 0.0, 0.0, 4.0});
+    heat::crank_nicolson(vec,1.0);
+    CHECK_THAT(vec[1],Catch::Matchers::WithinAbs(17.0/14.0,1e-12));
+    CHECK_THAT(vec[2],Catch::Matchers::WithinAbs(6.0/7.0,1e-12));
+    CHECK_THAT(vec[3],Catch::Matchers::WithinAbs(31.0/14.0,1e-12));
+    CHECK(vec[0] == 2.0);
+    CHECK(vec[4] == 4.0);
 }
 
 TEST_CASE("Expected behaviour holds for sin function initialiser for 5 steps, modes 1, 2, 3, Crank Nicolson"){
