@@ -1,11 +1,15 @@
 #include "solver/implicit/backward_euler.hpp"
 #include "verifier/verifier.hpp"
 #include "core/initialise_rod.hpp"
+#include "core/grid.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators_range.hpp>
 #include <stdexcept>
 #include <cmath>
+#include <vector>
+#include <functional>
+#include <limits>
 
 TEST_CASE("Single interior point kills wrong main diagonal"){
     std::vector<double> vec({0,1,0});
@@ -18,13 +22,17 @@ TEST_CASE("Symmetric pair gives symmetric output"){
     heat::backward_euler(vec,1.0);
     CHECK_THAT(vec[1],Catch::Matchers::WithinAbs(0.5,1e-12));
     CHECK_THAT(vec[2],Catch::Matchers::WithinAbs(0.5,1e-12));
+    CHECK(vec[0]==0.0);
+    CHECK(vec.back()==0.0);
 }
 
-TEST_CASE("Assymetric input gives asymmetric output"){
+TEST_CASE("Asymmetric input gives asymmetric output"){
     std::vector<double> vec({0,1,0,0});
     heat::backward_euler(vec,1.0);
     CHECK_THAT(vec[1],Catch::Matchers::WithinAbs(0.375,1e-12));
     CHECK_THAT(vec[2],Catch::Matchers::WithinAbs(0.125,1e-12));
+    CHECK(vec[0]==0.0);
+    CHECK(vec.back()==0.0);
 }
 
 TEST_CASE("Three interior points gives correct outputs"){
@@ -33,6 +41,8 @@ TEST_CASE("Three interior points gives correct outputs"){
     CHECK_THAT(vec[1],Catch::Matchers::WithinAbs(4.0/7.0,1e-12));
     CHECK_THAT(vec[3],Catch::Matchers::WithinAbs(4.0/7.0,1e-12));
     CHECK_THAT(vec[2],Catch::Matchers::WithinAbs(5.0/7.0,1e-12));
+    CHECK(vec[0]==0.0);
+    CHECK(vec.back()==0.0);
 }
 
 TEST_CASE("Ends are untouched"){
@@ -70,3 +80,32 @@ TEST_CASE("Expected behaviour holds for sin function initialiser for 10 steps, m
         CHECK(result.back()==initial.back());
     }
 }
+
+TEST_CASE("Backward Euler throws errors on bad inputs"){
+    std::vector<double> vec({0,1,0});
+    std::vector<double> vec_c = vec;
+
+    std::vector<double> small_vec2({1,1});
+    std::vector<double> vec2_c = small_vec2;
+
+    std::vector<double> small_vec1({1});
+    std::vector<double> vec1_c = small_vec1;
+
+    std::vector<double> small_vec0({});
+    std::vector<double> vec0_c = small_vec0;
+
+    CHECK_THROWS_AS(heat::backward_euler(small_vec2,0.5),std::invalid_argument);
+    CHECK(small_vec2==vec2_c);
+    CHECK_THROWS_AS(heat::backward_euler(small_vec1,0.5),std::invalid_argument);
+    CHECK(small_vec1==vec1_c);
+    CHECK_THROWS_AS(heat::backward_euler(small_vec0,0.5),std::invalid_argument);
+    CHECK(small_vec0==vec0_c);
+
+    CHECK_THROWS_AS(heat::backward_euler(vec,-0.5),std::invalid_argument);
+    CHECK(vec==vec_c);
+    CHECK_THROWS_AS(heat::backward_euler(vec,std::numeric_limits<double>::infinity()),std::invalid_argument);
+    CHECK(vec==vec_c);
+    CHECK_THROWS_AS(heat::backward_euler(vec,std::numeric_limits<double>::quiet_NaN()),std::invalid_argument);
+    CHECK(vec==vec_c);
+}
+

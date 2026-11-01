@@ -18,7 +18,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 include(CTest)
 
-add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp src/solver/explicit/time_step.cpp src/solver/implicit/tridiagonal.cpp src/writer/writer.cpp src/driver/simulation.cpp src/driver/cli.cpp src/solver/implicit/tridiagonal.cpp src/solver/implicit/backward_euler.cpp)
+add_library(heat_solver src/core/grid.cpp src/core/initialise_rod.cpp src/verifier/verifier.cpp src/solver/explicit/time_step.cpp src/writer/writer.cpp src/driver/simulation.cpp src/driver/cli.cpp src/solver/implicit/tridiagonal.cpp src/solver/implicit/backward_euler.cpp)
 target_include_directories(heat_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Main src/main.cpp)
