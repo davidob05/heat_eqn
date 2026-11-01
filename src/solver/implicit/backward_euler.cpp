@@ -19,6 +19,8 @@ namespace heat{
 
         heat::TridiagonalMatrix mat(std::vector<double>(curr_state.size()-3,-r),std::vector<double>(curr_state.size()-2,1+2*r),std::vector<double>(curr_state.size()-3,-r));
         std::vector<double> sliced_state = std::vector<double>(curr_state.begin() + 1, curr_state.end()-1);
+        sliced_state[0] = sliced_state[0] + r*curr_state[0];
+        sliced_state.back() = sliced_state.back() + r*curr_state.back();
         std::vector<double> solution = solve_tridiagonal(mat,sliced_state);
         
         for ( std::size_t i = 1 ; i < curr_state.size()-1 ; i++ ){

@@ -19,6 +19,8 @@ namespace heat{
         for ( std::size_t i = 1 ; i < curr_state.size()-1 ; i++ ){
             param[i-1] = (1-r)*curr_state[i] + r/2*(curr_state[i-1] + curr_state[i+1]);
         }
+        param.back() = param.back() + r*curr_state.back()/2.0;
+        param[0] = param[0] + r*curr_state[0]/2.0;
         std::vector<double> solution = solve_tridiagonal(mat,param);
         for ( std::size_t i = 1 ; i < curr_state.size()-1 ; i++ ) {
             curr_state[i] = solution[i-1];
