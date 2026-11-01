@@ -56,8 +56,14 @@ TEST_CASE("Solves a symmetric 2x2 system"){
     }
 }
 
-TEST_CASE("Zero pivot gives error"){
+TEST_CASE("Zero pivot gives error 3x3"){
     heat::TridiagonalMatrix tridiag({1,1},{1,1,1},{1,1});
     std::vector<double> d({1,1,1});
+    CHECK_THROWS_AS(heat::solve_tridiagonal(tridiag,d), std::runtime_error);
+}
+
+TEST_CASE("Zero pivot gives error 2x2"){
+    heat::TridiagonalMatrix tridiag({1},{1,1},{1});
+    std::vector<double> d({1,1});
     CHECK_THROWS_AS(heat::solve_tridiagonal(tridiag,d), std::runtime_error);
 }
