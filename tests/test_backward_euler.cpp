@@ -10,3 +10,15 @@ TEST_CASE("Single interior point kills wrong main diagonal"){
     heat::backward_euler(vec,0.5);
     CHECK(vec == std::vector<double>({0.0,0.5,0.0}));
 }
+
+TEST_CASE("Symmetric pair gives symmetric output"){
+    std::vector<double> vec({0,1,1,0});
+    heat::backward_euler(vec,0.5);
+    CHECK(vec == std::vector<double>({0.0,0.5,0.5,0.0}));
+}
+
+TEST_CASE("Assymetric input gives asymmetric output"){
+    std::vector<double> vec({0,1,0});
+    heat::backward_euler(vec,0.5);
+    CHECK(vec == std::vector<double>({0.0,0.375,0.125,0.0}));
+}
