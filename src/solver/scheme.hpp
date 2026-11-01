@@ -1,6 +1,8 @@
 #pragma once
 #include <tuple>
+#include <vector>
 #include <cstddef>
+#include <vector>
 
 namespace heat{
 
@@ -13,5 +15,5 @@ namespace heat{
     };
 
     std::tuple<std::size_t,double,double> calculate_step_parameters(double dx, double T, double alpha, double r_req);
-
+    void advance_state(std::vector<double>& state, double r, std::size_t n, Scheme scheme);
 }

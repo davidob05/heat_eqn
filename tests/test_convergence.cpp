@@ -27,7 +27,7 @@ TEST_CASE("Explicit scheme converges at r = 0.4 with max_error norm","[convergen
         REQUIRE_THAT(r_used,Catch::Matchers::WithinRel(r_req,1e-9));
         REQUIRE(n==n_intervals[i]*n_intervals[i]/4);//should hold since T/dt_req = 0.1, N^2/0.4 exactly, if it fails ciel increases n up by 1
         std::vector<double> rod = heat::initialise_rod(grid, heat::generate_specific_sin(L,mode));
-        heat::step_loop(rod,r_used,n);
+        heat::advance_state(rod,r_used,n,heat::Scheme::EXPLICIT);
         std::vector<double> exact = heat::exact_soln(grid,mode,T,alpha);
         errors[i] = heat::max_error(rod,exact);
     }
@@ -59,7 +59,7 @@ TEST_CASE("Explicit scheme converges at r = 0.4 with l2_error norm","[convergenc
         REQUIRE_THAT(r_used,Catch::Matchers::WithinRel(r_req,1e-9));
         REQUIRE(n==n_intervals[i]*n_intervals[i]/4);//should hold since T/dt_req = 0.1, N^2/0.4 exactly, if it fails ciel increases n up by 1
         std::vector<double> rod = heat::initialise_rod(grid, heat::generate_specific_sin(L,mode));
-        heat::step_loop(rod,r_used,n);
+        heat::advance_state(rod,r_used,n,heat::Scheme::EXPLICIT);
         std::vector<double> exact = heat::exact_soln(grid,mode,T,alpha);
         errors[i] = heat::l2_error(rod,exact, grid.dx());
     }

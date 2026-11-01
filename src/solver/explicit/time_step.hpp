@@ -11,6 +11,4 @@ namespace heat{
     // The first and last elements are never modified.
     // The argument is overwritten; pass a copy if the old state is still needed.
     void time_step(std::vector<double>& curr_state, double r);
-    // Applies n time steps to state, in place. Same preconditions as time_step.
-    void step_loop(std::vector<double>& state, double r, std::size_t n);
 }//namespace heat

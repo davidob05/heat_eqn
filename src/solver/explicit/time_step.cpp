@@ -16,10 +16,4 @@ namespace heat{
             prev = curr;
         }
     }
-
-    void step_loop(std::vector<double>& state, double r, std::size_t n){
-        for(std::size_t i = 0 ; i<n ; i++){
-            time_step(state, r);
-        }
-    }
 } // namespace heat

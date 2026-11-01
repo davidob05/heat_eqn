@@ -81,7 +81,7 @@ namespace heat{
                 snapshot_remainder--;
             }
 
-            step_loop(curr_state,r,n_runs);
+            advance_state(curr_state,r,n_runs,Scheme::EXPLICIT);
             runs_done += n_runs;
 
             double snapshot_time = static_cast<double>(runs_done)*dt;
