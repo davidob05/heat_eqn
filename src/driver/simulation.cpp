@@ -42,7 +42,7 @@ namespace heat{
         }
 
 
-        if(r>0.5*(1+ 10*std::numeric_limits<double>::epsilon())){
+        if(r>0.5*(1+ 10*std::numeric_limits<double>::epsilon())&&params.scheme==Scheme::EXPLICIT){
             std::ostringstream r_stream;
             r_stream << std::setprecision(std::numeric_limits<double>::max_digits10) << r;
             const std::string r_str = r_stream.str();
@@ -81,7 +81,7 @@ namespace heat{
                 snapshot_remainder--;
             }
 
-            advance_state(curr_state,r,n_runs,Scheme::EXPLICIT);
+            advance_state(curr_state,r,n_runs,params.scheme);
             runs_done += n_runs;
 
             double snapshot_time = static_cast<double>(runs_done)*dt;
