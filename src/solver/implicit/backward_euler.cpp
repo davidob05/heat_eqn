@@ -25,4 +25,4 @@ namespace heat{
             curr_state[i] = solution[i-1];
         }
     }
-}
+}// namespace heat
