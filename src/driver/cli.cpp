@@ -1,4 +1,5 @@
 #include "cli.hpp"
+#include "solver/scheme.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -48,6 +49,13 @@ namespace heat{
             return static_cast<std::size_t>(result);
         }
 
+        heat::Scheme parse_scheme(const std::string& flag, const std::string& value){
+            if (value == "explicit"){return heat::Scheme::EXPLICIT;}
+            else if (value == "crank-nicolson"){return heat::Scheme::CRANK_NICOLSON;}
+            else if (value == "backward-euler"){return heat::Scheme::BACKWARD_EULER;}
+            else {throw std::invalid_argument(flag + ": Scheme not recognised: " + value + " is not one of: explicit, crank-nicolson, backward-euler");}
+        }
+
     }
 
     void print_usage(std::ostream& stream, const std::string& program){
@@ -60,6 +68,7 @@ namespace heat{
                << "  --mode <int>          sine mode of the initial state\n"
                << "  --snapshots <int>     number of snapshots after the initial state\n"
                << "  --output <path>       output CSV path\n"
+               << "  --scheme <str>        which solver scheme to use (explicit/backward-euler/crank-nicolson)\n"
                << "  --help                show this message\n"
                << "Values may be given as '--flag value' or '--flag=value'.\n";
     }
@@ -86,7 +95,7 @@ namespace heat{
             }
 
             // everything below needs a value
-            static const std::vector<std::string> value_flags = {"--n-intervals","--length","--alpha","--T","--r-req","--mode","--snapshots","--output"};
+            static const std::vector<std::string> value_flags = {"--n-intervals","--length","--alpha","--T","--r-req","--mode","--snapshots","--output","--scheme"};
             if(std::find(value_flags.begin(), value_flags.end(), flag) == value_flags.end()){
                 throw std::invalid_argument("unknown option '" + flag + "'");
             }
@@ -108,6 +117,7 @@ namespace heat{
             else if(flag == "--r-req")       options.params.r_req = parse_double(flag, value);
             else if(flag == "--mode")        options.params.mode = parse_int(flag, value);
             else if(flag == "--snapshots")   options.params.snapshots = parse_size(flag, value);
+            else if(flag == "--scheme")      options.params.scheme = parse_scheme(flag,value);
             else                             options.output_path = value;
         }
         return options;
