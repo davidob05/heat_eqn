@@ -189,9 +189,17 @@ TEST_CASE("loop modifies the caller's vector in place"){
     CHECK(vec != copy);
     CHECK(vec.front() == copy.front());
     CHECK(vec.back() == copy.back());
+    heat::advance_state(vec,0.25,5,heat::Scheme::BACKWARD_EULER);
+    CHECK(vec != copy);
+    CHECK(vec.front() == copy.front());
+    CHECK(vec.back() == copy.back());
+    heat::advance_state(vec,0.25,5,heat::Scheme::CRANK_NICOLSON);
+    CHECK(vec != copy);
+    CHECK(vec.front() == copy.front());
+    CHECK(vec.back() == copy.back());
 }
 
-TEST_CASE("Decay against an exact solution"){
+TEST_CASE("Decay against an exact solution, explicit"){
     //N=100, L=1, alpha=1, r_req=0.4, T=0.1
     std::size_t n_intervals = 100;
     double L = 1.0;
@@ -207,7 +215,46 @@ TEST_CASE("Decay against an exact solution"){
     std::vector<double> state = heat::initialise_rod(grid,heat::generate_specific_sin(L,1));
     heat::advance_state(state,r,n,heat::Scheme::EXPLICIT);
     double max_error = heat::max_error(state,exact_solution);
-    CHECK_THAT(max_error, Catch::Matchers::WithinAbs(0.0,6e-5));
-    //observed difference of 4.2e-5
+    CHECK_THAT(max_error, Catch::Matchers::WithinAbs(4.236e-5, 1e-6));
+    //observed difference of 4.236e-5
 }
 
+TEST_CASE("Decay against an exact solution, backward euler"){
+    //N=100, L=1, alpha=1, r_req=0.4, T=0.1
+    std::size_t n_intervals = 100;
+    double L = 1.0;
+    double alpha = 1.0;
+    double r_req = 0.4;
+    double T = 0.1;
+    heat::Grid grid(n_intervals,L);
+    double dx = grid.dx();
+
+
+    auto [n,dt,r] = heat::calculate_step_parameters(dx,T,alpha,r_req);
+    std::vector<double> exact_solution = heat::exact_soln(grid,1,T,alpha);
+    std::vector<double> state = heat::initialise_rod(grid,heat::generate_specific_sin(L,1));
+    heat::advance_state(state,r,n,heat::Scheme::BACKWARD_EULER);
+    double max_error = heat::max_error(state,exact_solution);
+    CHECK_THAT(max_error, Catch::Matchers::WithinAbs(1.0285e-4, 1e-6));
+    //observed difference of 1.0285e-4
+}
+
+TEST_CASE("Decay against an exact solution, crank nicolson"){
+    //N=100, L=1, alpha=1, r_req=0.4, T=0.1
+    std::size_t n_intervals = 100;
+    double L = 1.0;
+    double alpha = 1.0;
+    double r_req = 0.4;
+    double T = 0.1;
+    heat::Grid grid(n_intervals,L);
+    double dx = grid.dx();
+
+
+    auto [n,dt,r] = heat::calculate_step_parameters(dx,T,alpha,r_req);
+    std::vector<double> exact_solution = heat::exact_soln(grid,1,T,alpha);
+    std::vector<double> state = heat::initialise_rod(grid,heat::generate_specific_sin(L,1));
+    heat::advance_state(state,r,n,heat::Scheme::CRANK_NICOLSON);
+    double max_error = heat::max_error(state,exact_solution);
+    CHECK_THAT(max_error, Catch::Matchers::WithinAbs(3.025e-5, 1e-6));
+    //observed difference of 3.025e-5
+}
