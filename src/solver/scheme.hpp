@@ -1,12 +1,12 @@
 #pragma once
 #include <tuple>
-
+#include <cstddef>
 
 namespace heat{
 
     inline constexpr double MAX_N = 1000000000;
 
-    enum Scheme {
+    enum class Scheme {
         EXPLICIT,
         BACKWARD_EULER,
         CRANK_NICOLSON

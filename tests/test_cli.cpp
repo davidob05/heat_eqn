@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
 #include "driver/cli.hpp"
+#include "solver/scheme.hpp"
 #include <cstddef>
 #include <sstream>
 #include <stdexcept>
@@ -19,11 +20,12 @@ TEST_CASE("No arguments gives the defaults"){
     CHECK(options.params.mode == defaults.mode);
     CHECK(options.params.snapshots == defaults.snapshots);
     CHECK(options.output_path == "results/output.csv");
+    CHECK(options.params.scheme == heat::Scheme::EXPLICIT);
     CHECK(!options.show_help);
 }
 
 TEST_CASE("Every flag fills in its field"){
-    heat::CliOptions options = heat::parse_args({"--n-intervals","50","--length","2.5","--alpha","0.5","--T","0.05","--r-req","0.3","--mode","-2","--snapshots","4","--output","out.csv"});
+    heat::CliOptions options = heat::parse_args({"--n-intervals","50","--length","2.5","--alpha","0.5","--T","0.05","--r-req","0.3","--mode","-2","--snapshots","4","--output","out.csv","--scheme","crank-nicolson"});
     CHECK(options.params.n_intervals == 50);
     CHECK(options.params.length == 2.5);
     CHECK(options.params.alpha == 0.5);
@@ -32,6 +34,7 @@ TEST_CASE("Every flag fills in its field"){
     CHECK(options.params.mode == -2);
     CHECK(options.params.snapshots == 4);
     CHECK(options.output_path == "out.csv");
+    CHECK(options.params.scheme == heat::Scheme::CRANK_NICOLSON);
 }
 
 TEST_CASE("Space separated and equals separated values are equivalent"){
@@ -96,8 +99,18 @@ TEST_CASE("A value flag with no value is reported as missing"){
 TEST_CASE("Usage text mentions every flag"){
     std::ostringstream stream;
     heat::print_usage(stream,"Main");
-    for(const char* flag : {"--n-intervals","--length","--alpha","--T","--r-req","--mode","--snapshots","--output","--help"}){
+    for(const char* flag : {"--n-intervals","--length","--alpha","--T","--r-req","--mode","--snapshots","--output","--help","--scheme"}){
         INFO(flag);
         CHECK(stream.str().find(flag) != std::string::npos);
     }
+}
+
+TEST_CASE("Each of the three possibilities for scheme CLI gives its equivalent"){
+    heat::CliOptions options_1 = heat::parse_args({"--scheme","explicit"});
+    CHECK(options_1.params.scheme == heat::Scheme::EXPLICIT);
+    heat::CliOptions options_2 = heat::parse_args({"--scheme","backward-euler"});
+    CHECK(options_2.params.scheme == heat::Scheme::BACKWARD_EULER);
+    heat::CliOptions options_3 = heat::parse_args({"--scheme","crank-nicolson"});
+    CHECK(options_3.params.scheme == heat::Scheme::CRANK_NICOLSON);
+    CHECK_THROWS_AS(heat::parse_args({"--scheme","other"}),std::invalid_argument);
 }

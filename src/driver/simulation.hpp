@@ -2,6 +2,7 @@
 #include <ostream>
 #include <cstddef>
 #include <vector>
+#include "solver/scheme.hpp"
 
 
 namespace heat{
@@ -17,6 +18,7 @@ namespace heat{
         double r_req = 0.4;
         int mode = 1;
         std::size_t snapshots = 5;
+        heat::Scheme scheme = heat::Scheme::EXPLICIT;
     };
 
     enum class WarningCode {
