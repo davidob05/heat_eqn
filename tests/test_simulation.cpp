@@ -341,3 +341,57 @@ TEST_CASE("Mode too high warning fires only past the threshold"){
     REQUIRE(result.warnings.size() == 1);
     CHECK(result.warnings[0].code == heat::WarningCode::MODE_TOO_HIGH_FOR_INTERVALS);
 }
+
+namespace {
+    bool has_warning(const heat::SimulationResult& result, heat::WarningCode code){
+        return std::any_of(result.warnings.begin(),result.warnings.end(),
+            [code](const heat::Warning& w){ return w.code == code; });
+    }
+}
+
+TEST_CASE("The scheme is used by the driver"){
+    //default parameters: N=100, T=0.1, r_req=0.4
+    const auto [scheme, expected_error] = GENERATE(
+        std::pair<heat::Scheme,double>{heat::Scheme::EXPLICIT,4.236e-5},
+        std::pair<heat::Scheme,double>{heat::Scheme::BACKWARD_EULER,1.0285e-4},
+        std::pair<heat::Scheme,double>{heat::Scheme::CRANK_NICOLSON,3.025e-5}
+    );
+    heat::SimulationParams params;
+    params.scheme = scheme;
+    std::ostringstream stream;
+    heat::SimulationResult result = heat::run_simulation(params,stream);
+    CHECK_THAT(heat::max_error(result.calculated,result.exact),Catch::Matchers::WithinAbs(expected_error,1e-6));
+}
+
+TEST_CASE("Unstable r warning is explicit-only"){
+    heat::SimulationParams params;
+    std::ostringstream stream;
+
+    SECTION("r_req = 0.6"){
+        params.r_req = 0.6;
+    }
+    SECTION("r_req = 5, 200 steps"){
+        params.r_req = 5.0;
+    }
+
+    params.scheme = heat::Scheme::EXPLICIT;
+    CHECK(has_warning(heat::run_simulation(params,stream),heat::WarningCode::UNSTABLE_R));
+
+    params.scheme = heat::Scheme::BACKWARD_EULER;
+    CHECK_FALSE(has_warning(heat::run_simulation(params,stream),heat::WarningCode::UNSTABLE_R));
+
+    params.scheme = heat::Scheme::CRANK_NICOLSON;
+    CHECK_FALSE(has_warning(heat::run_simulation(params,stream),heat::WarningCode::UNSTABLE_R));
+}
+
+TEST_CASE("Implicit schemes stay finite at r_req = 5"){
+    heat::SimulationParams params;
+    params.r_req = 5.0;
+    params.scheme = GENERATE(heat::Scheme::BACKWARD_EULER,heat::Scheme::CRANK_NICOLSON);
+    std::ostringstream stream;
+    heat::SimulationResult result = heat::run_simulation(params,stream);
+    CHECK(result.n_steps == 200);
+    const bool all_finite = std::all_of(result.calculated.begin(),result.calculated.end(),
+        [](double v){ return std::isfinite(v); });
+    CHECK(all_finite);
+}
