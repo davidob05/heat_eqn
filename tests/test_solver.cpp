@@ -5,6 +5,7 @@
 #include "core/grid.hpp"
 #include "verifier/verifier.hpp"
 #include "solver/explicit/time_step.hpp"
+#include "solver/scheme.hpp"
 #include <limits>
 #include <functional>
 #include <cmath>

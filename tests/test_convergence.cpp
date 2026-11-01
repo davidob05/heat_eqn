@@ -4,6 +4,7 @@
 #include "core/initialise_rod.hpp"
 #include "solver/explicit/time_step.hpp"
 #include "verifier/verifier.hpp"
+#include "solver/scheme.hpp"
 #include <vector>
 #include <cmath>
 #include <cstddef>

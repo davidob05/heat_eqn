@@ -3,6 +3,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include "driver/simulation.hpp"
 #include "solver/explicit/time_step.hpp"
+#include "solver/scheme.hpp"
 #include "core/initialise_rod.hpp"
 #include "core/grid.hpp"
 #include "verifier/verifier.hpp"
