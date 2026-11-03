@@ -3,7 +3,7 @@ A program that approximates the solution to the 1D heat equation
 
     u_t = alpha * u_xx,   0 < x < L
 
-on a rod with both ends held at 0. The initial state is a sine mode, `u(x, 0) = sin(mode * pi * x / L)`, and the solution is stepped forward with the explicit FTCS (forward-time, centred-space) scheme. Each snapshot is written alongside the exact solution, `u(x, t) = exp(-alpha * (mode * pi / L)^2 * t) * sin(mode * pi * x / L)`, so the error can be read straight from the output.
+on a rod with both ends held at 0. The initial state is a sine mode, `u(x, 0) = sin(mode * pi * x / L)`, and the solution is stepped forward with one of three schemes chosen with `--scheme`: explicit FTCS (forward-time, centred-space, the default), Backward Euler or Crank-Nicolson. Each snapshot is written alongside the exact solution, `u(x, t) = exp(-alpha * (mode * pi / L)^2 * t) * sin(mode * pi * x / L)`, so the error can be read straight from the output.
 
 # Instructions
 
@@ -48,6 +48,7 @@ Debug is for development (warnings are errors, AddressSanitizer is on), release 
 | `--r-req <double>` | requested `r = alpha * dt / dx^2` | 0.4 |
 | `--mode <int>` | sine mode of the initial state (not 0) | 1 |
 | `--snapshots <int>` | snapshots written after the initial state | 5 |
+| `--scheme <str>` | `explicit`, `backward-euler` or `crank-nicolson` | `explicit` |
 | `--output <path>` | output CSV path | `results/output.csv` |
 | `--help`, `-h` | print usage | |
 
@@ -59,7 +60,7 @@ The run writes to `<output>.tmp` and renames it over the target only on success,
 
 ### Warnings
 Warnings are printed to stderr and do not stop the run:
- - `r` above 0.5 (the scheme is unstable)
+ - `r` above 0.5 (the explicit scheme is unstable; this warning is only given for `--scheme explicit`)
  - mode too high for the number of intervals (`|mode| * 10 > n_intervals`)
  - the state decays almost to zero by `T`, so the error margin may be misleading
  - the initial function is not close to 0 at the left or right end
@@ -77,7 +78,9 @@ The top panel shows the exact solution (lines) with the numeric solution (marker
 
 The plot script has its own tests: `python3 -m unittest tests.test_plot` from the project root.
 
-## Convergence
+## Explicit scheme: convergence
+Everything in this section and in "Explicit scheme: stability" is about the explicit (FTCS) scheme only, and the scripts behind it run `Main` with its default `--scheme explicit`. The implicit schemes are covered in "Implicit schemes" below.
+
 Fixed `r = 0.4`, `T = 0.1`, `L = 1`, `alpha = 1`, mode 1, halving `dx` each row. With these settings `n = N^2 / 4` is a whole number, so the step is exactly `r_req` and `r` stays at 0.4 for every row. Errors are measured at `t = T` (the max error is also the largest over all snapshots, since the error grows with time). The max error is the largest `|numeric - exact|` over the grid; the L2 error is `sqrt(dx * sum(d^2))`. Each order is `log(err_prev / err) / log(dx_prev / dx)`.
 
 | N | dx | time steps | max error | max-error order | L2 error | L2 order |
@@ -104,7 +107,7 @@ It runs `Main` for each `N` with one snapshot, writes `results/convN.csv`, reads
 
 The script's calculations are tested with `python3 -m unittest tests.test_convergence_script`. The N = 20 row (max error 1.0625e-3, L2 7.51e-4) is cross-checked against the C++ test in `tests/test_convergence.cpp`, and that Python test is skipped if `build/release/Main` is absent.
 
-## Stability
+## Explicit scheme: stability
 The explicit scheme is stable only for `r <= 0.5`. `scripts/instability.py` runs `Main` at several requested values of `r` (default 0.45, 0.51, 0.55, 0.6; `N = 100`, `T = 0.1`, mode 1, 100 snapshots) and plots the largest `|u|` against time on a log axis, in two panels sharing the time axis: the full range on top, and a zoom on 1e-3 to 1e3 below so the stable decay and the early turn-ups are visible. Build the release binary first, then run from the project root:
 
 ```bash
@@ -143,12 +146,34 @@ For `r = 0.45`, `g = 1 - 4r = -0.8`, so each step multiplies the sawtooth by 0.8
 
 The sawtooth has a time constant of `dt / |ln 0.8|`, about 2e-4, while the smooth sine decays with a time constant of about `1/pi^2`, roughly 0.1. The sawtooth therefore dies about 500 times faster than the smooth part. This is why diffusion smooths data and why a stable run looks clean: rounding errors in the high modes are wiped out within a few steps of appearing. The stable peak at `T` follows the exact solution, `exp(-pi^2 * alpha * T / L^2) = 0.3727` for `L = 1`, `alpha = 1`, `T = 0.1`, and the r = 0.45 run ends at 0.372656, in agreement with it.
 
+## Implicit schemes
+Backward Euler and Crank-Nicolson, selected with `--scheme backward-euler` and `--scheme crank-nicolson`. Each step solves a tridiagonal system for the interior points (`src/solver/implicit/`). Fill in the subsections below.
+
+### The schemes
+<!-- TODO: the update formula for each scheme, and the matrix they solve. -->
+
+### Solving the tridiagonal system
+<!-- TODO: the Thomas algorithm (tridiagonal.cpp), its cost, and its assumptions. -->
+
+### Convergence
+<!-- TODO: table/figure for each scheme, observed orders. Known so far at the default
+     parameters (N = 100, T = 0.1, r_req = 0.4), max error: Backward Euler 1.0285e-4,
+     Crank-Nicolson 3.025e-5, explicit 4.236e-5. -->
+
+### Stability
+<!-- TODO: growth factor for each scheme, and the run at r_req = 5 (200 steps), where the
+     explicit scheme would blow up. No UNSTABLE_R warning is given for implicit schemes. -->
+
+### Comparison with the explicit scheme
+<!-- TODO: accuracy vs cost per step, and when each scheme is worth using. -->
 
 ## Project layout
 ```
 src/
   core/       Grid and initial-state construction
-  solver/     FTCS time step, step-parameter calculation, step loop
+  solver/     Scheme selection (scheme.cpp: step-parameter calculation, advance_state)
+    explicit/ FTCS time step and step loop
+    implicit/ Tridiagonal solver, Backward Euler, Crank-Nicolson
   verifier/   Sine initial function and exact solution
   writer/     CSV output
   driver/     run_simulation (validation, snapshots, warnings) and the CLI parser
@@ -156,8 +181,8 @@ src/
 tests/        Catch2 unit tests (C++, one file per module, plus test_convergence.cpp)
               and Python tests (test_plot.py, test_convergence_script.py,
               test_instability_script.py)
-scripts/      plot.py (plot one run), convergence.py (grid-refinement study)
-              and instability.py (stable vs unstable r)
+scripts/      plot.py (plot one run), convergence.py (grid-refinement study, explicit)
+              and instability.py (stable vs unstable r, explicit)
 results/      Default output location for CSVs (contents are git-ignored)
 docs/         Kept in git: convergence_table.md and figures (docs/figures/)
 ```
