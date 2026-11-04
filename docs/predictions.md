@@ -35,6 +35,37 @@ With `lambda = pi^2` (`L = 1`, `mode = 1`) and `a = dt * lambda`, the sine mode 
 - **Crank-Nicolson.** `2.986 * dt^2 - 7.6e-8 = 1e-5` gives `dt = 1.837e-3`, so `n = 54.4`. `n` must be an integer, so `n = 55` and `dt = 1.818e-3`. That gives an error of `2.986 * 3.306e-6 - 7.6e-8 = 9.8e-6`. `n = 54` would give 1.017e-5, which misses the target, so 55 is the minimum. Use `r_req` between 7273 and 7407 to get `n = 55`.
 - **Explicit.** The explicit scheme cannot take a step as large as accuracy would allow. Stability needs `r <= 0.5`, so `dt <= 0.5 * dx^2 = 1.25e-7` and `n >= 800,000`. At that step the error is `(0.9075 - 0.3025) * 2.5e-7 = 1.5e-7` (numeric below exact). That is 66 times better than the target. The `r = 1/6` zero-error point is not available, because the step is already pinned at the stability limit. `ceil` may round the count to 800,001, which makes no practical difference.
 
+## Predicted run time
+
+Setup: the same fixed `N = 2000` runs as above. Time is the `advance_state` loop only, not startup or CSV output.
+
+### Assumptions
+
+| Item | Value |
+|---|---|
+| CPU | AMD Ryzen AI 9 365 (10 cores, 32 GB RAM). The code is single-threaded, so one core is used. |
+| Build | Release, `-O3`, no `-march`, no `-ffast-math`, so scalar or SSE2 code |
+| Throughput | About 5 GHz and 2 flops per cycle, so 10 Gflop/s |
+| Explicit | Throughput-bound with no dependency chain, and the 16 KB state fits in L1. Factor x1.05. |
+| Backward Euler | The Thomas solve is bound by divide latency (about 13 cycles) along its chain: about 36 cycles per row for 8 flops, so 0.22 flops per cycle. About 2 us per step for allocations. Factor x10. |
+| Crank-Nicolson | Same Thomas chain, plus a cheap throughput-bound right-hand side. Factor x7.5. |
+
+### Predicted results
+
+| Scheme | Total flops | Time at 10 Gflop/s | Predicted time |
+|---|---|---|---|
+| Explicit | 8.0e9 | 800 ms | about 840 ms |
+| Backward Euler | 2.93e8 | 29 ms | about 300 ms |
+| Crank-Nicolson | 1.32e6 | 0.13 ms | about 1.0 ms |
+
+| Ratio | Flop ratio | Predicted time ratio |
+|---|---|---|
+| Explicit / Backward Euler | 27 | about 2.8 |
+| Backward Euler / Crank-Nicolson | 222 | about 310 |
+| Explicit / Crank-Nicolson | 6,060 | about 860 |
+
+Uncertainty: the Backward Euler and Crank-Nicolson times are about +-30%, mainly from the divide latency and the clock speed. The explicit time has a wider range, about 400 to 850 ms, because the compiler at `-O3` may vectorise the stencil loop with SSE2 and roughly halve the time. The explicit to Backward Euler ratio therefore ranges from about 1.3 to 2.8, and it is the least certain prediction in this file.
+
 ## Cost to reach a target error at each scheme's own best N
 
 The fixed-N predictions above compare the schemes on one grid. This section lets each scheme choose its own `N` for a target error `eps`, which is the comparison the plan calls "wall-clock time to reach the same accuracy". The cost per step is O(N) for all three schemes, because the Thomas algorithm is linear in the number of rows.
