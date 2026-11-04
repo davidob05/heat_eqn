@@ -45,7 +45,8 @@ add_executable(unit_tests
     tests/test_convergence.cpp 
     tests/test_tridiagonal.cpp 
     tests/test_backward_euler.cpp 
-    tests/test_crank_nicolson.cpp)
+    tests/test_crank_nicolson.cpp
+    tests/test_time_order.cpp)
 
 foreach(target IN ITEMS heat_solver Main unit_tests)
     if(MSVC)
