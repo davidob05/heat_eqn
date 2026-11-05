@@ -29,6 +29,22 @@ ctest --preset release
 ./build/release/Main
 ```
 
+For running benchmarking, run
+
+```bash
+cmake --preset release
+cmake --build --preset release
+./build/release/Bench
+```
+
+To check how much auto-vectorisation (`-fno-tree-vectorize` turns it off) contributes to the explicit scheme's time, build the same benchmark into a separate directory and compare the two explicit medians:
+
+```bash
+cmake --preset release-novec
+cmake --build --preset release-novec --target Bench
+./build/release-novec/Bench
+```
+
 ## Debug vs Release
 Debug is for development (warnings are errors, AddressSanitizer is on), release is for real, optimised runs.
 

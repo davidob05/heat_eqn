@@ -21,11 +21,18 @@
       "displayName": "Release",
       "inherits": "base",
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+    },
+    {
+      "name": "release-novec",
+      "displayName": "Release, auto-vectorisation off (benchmark control)",
+      "inherits": "release",
+      "cacheVariables": { "CMAKE_CXX_FLAGS": "-fno-tree-vectorize" }
     }
   ],
   "buildPresets": [
     { "name": "debug",   "configurePreset": "debug",   "jobs": 8 },
-    { "name": "release", "configurePreset": "release", "jobs": 8 }
+    { "name": "release", "configurePreset": "release", "jobs": 8 },
+    { "name": "release-novec", "configurePreset": "release-novec", "jobs": 8 }
   ],
   "testPresets": [
     { "name": "debug",   "configurePreset": "debug",   "output": { "outputOnFailure": true } },

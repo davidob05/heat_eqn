@@ -34,6 +34,7 @@ add_library(heat_solver
 target_include_directories(heat_solver PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(Main src/main.cpp)
+add_executable(Bench src/bench/bench.cpp)
 add_executable(unit_tests 
     tests/test_grid.cpp 
     tests/test_initialise_rod.cpp 
@@ -48,7 +49,7 @@ add_executable(unit_tests
     tests/test_crank_nicolson.cpp
     tests/test_time_order.cpp)
 
-foreach(target IN ITEMS heat_solver Main unit_tests)
+foreach(target IN ITEMS heat_solver Main Bench unit_tests)
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 $<$<CONFIG:Debug>:/WX>)
     else()
@@ -61,13 +62,14 @@ foreach(target IN ITEMS heat_solver Main unit_tests)
     endif()
 endforeach()
 
-foreach(target IN ITEMS Main unit_tests)
+foreach(target IN ITEMS Main Bench unit_tests)
     if(NOT MSVC)
         target_link_options(${target} PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
     endif()
 endforeach()
 
 target_link_libraries(Main PRIVATE heat_solver)
+target_link_libraries(Bench PRIVATE heat_solver)
 target_link_libraries(unit_tests PRIVATE Catch2::Catch2WithMain heat_solver)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
